@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const usersSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema({
     login: {
         type: String,
         index: true,
@@ -11,4 +11,4 @@ const usersSchema = new mongoose.Schema({
     }
 });
 
-export default usersSchema;
+export default userSchema;
