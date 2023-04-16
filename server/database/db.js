@@ -1,23 +1,21 @@
-import mongoose from "mongoose";
+import mysql from 'mysql2';
 import { config } from '../config.js';
 
-mongoose.connect(config.DB_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-});
-
-const db = mongoose.connection;
-
-db.on('connected', () => {
-    console.log('Mongoose connection open to ', config.DB_URL);
-});
-
-db.on('error', error => {
-    console.warn(`Mongoose connection error: ${error}`);
-});
-
-db.on('disconnected', () => {
-    console.warn('Mongoose connection disconnected');
+const connection = mysql.createConnection({
+    host: config.DB_HOST,
+    user: config.DB_USER,
+    password: config.DB_PASSWORD,
+    database: config.DB,
 })
 
-export default mongoose;
+// Connect to the database
+connection.connect(function (err) {
+    if (err) {
+        console.error('Error connecting to database: ' + err.stack);
+        return;
+    }
+
+    console.log('Connected to database ', config.DB);
+});
+
+export default connection;

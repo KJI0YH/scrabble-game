@@ -5,8 +5,8 @@ import { config } from '../config.js';
 import { ErrorHandler } from '../middlewares/error.js';
 import { verifyToken } from '../middlewares/auth.js';
 
-import User, { checkExisting } from '../models/User.js';
-import { response } from 'express';
+import connection from '../database/db.js';
+import { checkExisting, addUser } from '../database/user.js';
 
 const { JWT_SECRET, SALT_ROUNDS } = config;
 
@@ -20,12 +20,12 @@ const authController = {
                 throw new ErrorHandler(401, 'No login found. Enter a login and try again!');
             }
 
-            const check = await checkExisting(login);
-            if (!check) {
+            const existed = await checkExisting(login);
+            if (!existed) {
                 throw new ErrorHandler(401, 'Username or password is incorrect. Try again!');
             }
 
-            const match = await bcrypt.compare(password, check.passwordHash);
+            const match = await bcrypt.compare(password, existed.password_hash);
             if (!match) {
                 throw new ErrorHandler(401, 'Username of password is incorrect. Try again!');
             }
@@ -51,9 +51,7 @@ const authController = {
             }
 
             const passwordHash = bcrypt.hashSync(password, SALT_ROUNDS);
-            const newUser = new User({ login: login, passwordHash: passwordHash });
-
-            await newUser.save();
+            await addUser(login, passwordHash);
 
             return res.json({
                 success: true,
