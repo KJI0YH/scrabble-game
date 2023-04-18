@@ -47,7 +47,10 @@ export default function gameController(gameNamespace) {
                     return socket.emit('join error', { message: 'Game has already started' });
                 } else {
                     socket.join(id);
-                    activeRooms[id].players.push(socket.login);
+
+                    if (!activeRooms[id].players.includes(socket.login)) {
+                        activeRooms[id].players.push(socket.login);
+                    }
 
                     socket.emit('joined', { room: activeRooms[id] });
                     gameNamespace.to(id).emit('user joined', { message: `User ${socket.login} joined`, users: activeRooms[id].players });
