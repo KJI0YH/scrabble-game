@@ -11,7 +11,7 @@ function Room(props) {
     }
 
     return (
-        <div className="room-card">
+        <div key={room.id} className="room-card">
             <h3>{room.roomName}</h3>
             <text>Language: {room.language}</text> <br />
             <text>Minutes per player: {room.minutesPerPlayer}</text> <br />

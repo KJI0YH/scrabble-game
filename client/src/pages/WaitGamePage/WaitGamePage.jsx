@@ -15,11 +15,15 @@ function WaitGamePage() {
             setRoom(newRoom);
         });
 
-        gameSocket.on('user leave', ({ message, users }) => {
+        gameSocket.on('user left', ({ message, users }) => {
             console.log(message);
             const newRoom = { ...room };
             newRoom.players = users;
             setRoom(newRoom);
+        });
+
+        gameSocket.on('game canceled', () => {
+            navigate('/', { replace: true });
         });
 
         gameSocket.on('game started', () => {
@@ -28,13 +32,19 @@ function WaitGamePage() {
 
         return () => {
             gameSocket.off('user joined');
-            gameSocket.off('user leave');
+            gameSocket.off('user left');
+            // gameSocket.emit('leave game', { id: room.id });
             // gameSocket.disconnect();
         }
     }, []);
 
     function handleStartGame() {
         gameSocket.emit('start game');
+    }
+
+    function handleLeaveGame() {
+        gameSocket.emit('leave game', { id: room.id });
+        navigate('/', { replace: true });
     }
 
     return (
@@ -52,6 +62,7 @@ function WaitGamePage() {
             {gameSocket.login === room.creator && (
                 <button onClick={handleStartGame}>Start game</button>
             )}
+            <button onClick={handleLeaveGame}>{gameSocket.login === room.creator ? 'Cancel game' : 'Leave game'}</button>
         </div>
     );
 }

@@ -15,7 +15,9 @@ export default function gameController(gameNamespace) {
             userID: socket.userID,
         });
 
-        socket.emit('active rooms', { activeRooms: Object.values(activeRooms) });
+        socket.on('active rooms', () => {
+            socket.emit('active rooms', { activeRooms: Object.values(activeRooms) });
+        });
 
         socket.on('create game', ({ language, minutesPerPlayer, roomName }) => {
 
@@ -63,8 +65,29 @@ export default function gameController(gameNamespace) {
             }
         });
 
+        socket.on('leave game', ({ id }) => {
+            if (activeRooms[id]) {
+                if (id === socket.userID) {
+                    const index = activeRooms.indexOf(id);
+                    activeRooms.splice(index, 1);
+                    gameNamespace.to(id).emit('game canceled');
+                } else {
+                    const index = activeRooms[id].players.indexOf(socket.login);
+                    if (index !== -1) {
+                        activeRooms[id].players.splice(index, 1);
+                        gameNamespace.to(id).emit('user left', { message: `User ${socket.login} left`, users: activeRooms[id].players });
+                    }
+                }
+                gameNamespace.emit('active rooms', { activeRooms: Object.values(activeRooms) });
+            }
+        });
+
         socket.on('start game', () => {
             gameNamespace.to(socket.userID).emit('game started');
+        });
+
+        socket.on('cancel game', () => {
+            gameNamespace.to(login.userID).emit('game canceled');
         });
 
         socket.on('disconnect', () => {

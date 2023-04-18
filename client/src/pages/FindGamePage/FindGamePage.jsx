@@ -15,6 +15,8 @@ function FindGamePage() {
             gameSocket.connect();
         }
 
+        gameSocket.emit('active rooms');
+
         gameSocket.on('connect_error', (error) => {
             navigate('/login', { replace: true });
         });
@@ -33,7 +35,7 @@ function FindGamePage() {
         });
 
         gameSocket.on('joined', ({ room }) => {
-            navigate('/game/wait', { replace: false, state: { room: room } });
+            navigate('/game/wait', { replace: true, state: { room: room } });
         });
 
         gameSocket.on('join error', ({ message }) => {
