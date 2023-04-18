@@ -5,6 +5,6 @@ export const defaultSocket = io(serverURL, { autoConnect: false });
 export const chatSocket = io(serverURL + '/chat', { autoConnect: false });
 export const gameSocket = io(serverURL + '/game', { autoConnect: false });
 
-defaultSocket.onAny((event, ...args) => {
+gameSocket.onAny((event, ...args) => {
     console.log(event, args);
 });

@@ -4,11 +4,10 @@ import jwt from 'jsonwebtoken';
 import { config } from '../config.js';
 import { ErrorHandler } from '../middlewares/error.js';
 import { verifyToken } from '../middlewares/auth.js';
-
-import connection from '../database/db.js';
 import { checkExisting, addUser } from '../database/user.js';
 
 const { JWT_SECRET, SALT_ROUNDS } = config;
+
 
 const authController = {
 
@@ -30,7 +29,7 @@ const authController = {
                 throw new ErrorHandler(401, 'Username of password is incorrect. Try again!');
             }
 
-            const token = jwt.sign({ login: login }, JWT_SECRET);
+            const token = jwt.sign({ login: login, userID: existed.id }, JWT_SECRET, { expiresIn: '1h' });
             return res.json({ success: true, token });
         } catch (error) {
             next(error);

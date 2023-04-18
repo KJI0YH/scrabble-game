@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { gameSocket } from '../../socket';
 
 function LoginPage() {
     const [login, setLogin] = useState('');
@@ -20,8 +21,9 @@ function LoginPage() {
 
         try {
             const response = await axios.post('http://localhost:8080/api/auth/login', { login: login, password: password });
+            localStorage.removeItem('token');
             localStorage.setItem('token', response.data.token);
-            navigate('/home', { replace: false });
+            navigate('/', { replace: true });
         } catch (error) {
             console.error(error);
         }

@@ -10,6 +10,7 @@ import defaultRoutes from './routes/defaultRoutes.js';
 import { config } from './config.js';
 import { handleError } from './middlewares/error.js';
 import chatController from './controllers/chatController.js';
+import gameController from './controllers/gameController.js';
 
 const app = express();
 
@@ -29,7 +30,7 @@ const gameNamespace = io.of('/game');
 
 // Pass namespaces to controllers
 chatController(chatNamespace);
-
+gameController(gameNamespace);
 
 app.use(express.json());
 app.use(cors({ origin: config.ALLOW_LIST_HOSTS, credentials: true }));
