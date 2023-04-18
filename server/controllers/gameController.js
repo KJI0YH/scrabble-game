@@ -1,7 +1,7 @@
 import { authenticateToken } from "../middlewares/auth.js";
 import authController from "./authController.js";
 
-const activeRooms = [];
+let activeRooms = [];
 
 export default function gameController(gameNamespace) {
 
@@ -20,7 +20,6 @@ export default function gameController(gameNamespace) {
         });
 
         socket.on('create game', ({ language, minutesPerPlayer, roomName }) => {
-
             const creator = socket.login;
             const roomID = socket.userID;
             if (activeRooms[roomID]) {
@@ -68,8 +67,7 @@ export default function gameController(gameNamespace) {
         socket.on('leave game', ({ id }) => {
             if (activeRooms[id]) {
                 if (id === socket.userID) {
-                    const index = activeRooms.indexOf(id);
-                    activeRooms.splice(index, 1);
+                    activeRooms = activeRooms.filter((room) => room.id !== id);
                     gameNamespace.to(id).emit('game canceled');
                 } else {
                     const index = activeRooms[id].players.indexOf(socket.login);

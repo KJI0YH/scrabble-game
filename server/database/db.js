@@ -1,20 +1,19 @@
-import mysql from 'mysql2';
 import { config } from '../config.js';
+import { MongoClient } from 'mongodb';
 
-const connection = mysql.createConnection({
-    host: config.DB_HOST,
-    user: config.DB_USER,
-    password: config.DB_PASSWORD,
-    database: config.DB,
-})
-
-// Connect to the database
-connection.connect(function (err) {
-    if (err) {
-        console.error('Error connecting to database: ' + err.stack);
-        return;
+async function connectToDb() {
+    try {
+        const mongoClient = new MongoClient(config.DB_URL);
+        console.log('Connecting to MongoDB Atlas cluster...');
+        await mongoClient.connect();
+        console.log('Successfully connected to MongoDB Atlas!');
+        return mongoClient.db(config.DB_NAME);
+    } catch (error) {
+        console.error('Connection to MongoDB Atlas failed!', error);
+        process.exit();
     }
-    console.log('Connected to database ', config.DB);
-});
+}
 
-export default connection;
+const db = await connectToDb();
+
+export default db;

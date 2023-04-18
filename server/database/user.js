@@ -1,10 +1,12 @@
-import connection from "./db.js";
+import db from "./db.js";
 
-export const checkExisting = async (login) => {
-    const [result] = await connection.promise().query('SELECT * FROM scrabble_db.user WHERE login = ?', [login]);
-    return result[0];
-};
+export async function checkExisting(login) {
+    const result = await db.collection('users').findOne({ login: login });
+    return result;
+}
 
-export const addUser = async (login, password_hash) => {
-    await connection.execute('INSERT INTO user (login, password_hash, last_online) VALUES(?, ?, NOW())', [login, password_hash]);
-}   
+export async function addUser(login, passwordHash) {
+    const user = { login: login, passwordHash: passwordHash };
+    const result = await db.collection('users').insertOne(user);
+    return result;
+}

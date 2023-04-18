@@ -24,12 +24,12 @@ const authController = {
                 throw new ErrorHandler(401, 'Username or password is incorrect. Try again!');
             }
 
-            const match = await bcrypt.compare(password, existed.password_hash);
+            const match = await bcrypt.compare(password, existed.passwordHash);
             if (!match) {
                 throw new ErrorHandler(401, 'Username of password is incorrect. Try again!');
             }
 
-            const token = jwt.sign({ login: login, userID: existed.id }, JWT_SECRET, { expiresIn: '1h' });
+            const token = jwt.sign({ login: login, userID: existed._id }, JWT_SECRET, { expiresIn: '1h' });
             return res.json({ success: true, token });
         } catch (error) {
             next(error);

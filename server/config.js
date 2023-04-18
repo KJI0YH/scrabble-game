@@ -19,8 +19,6 @@ export const config = {
     SALT_ROUNDS: process.env.SALT_ROUNDS ? Number.parseInt(process.env.SALT_ROUNDS, 10) : 10,
     JWT_SECRET: getDefault(process.env.JWT_SECRET, 'SECRET'),
 
-    DB_HOST: process.env.DB_HOST ?? '127.0.0.1',
-    DB_USER: process.env.DB_USER ?? 'root',
-    DB_PASSWORD: process.env.DB_PASSWORD ?? 'root',
-    DB: 'scrabble_db',
+    DB_URL: getDefault(process.env.DB_URL, 'mongodb://127.0.0.1:27017/'),
+    DB_NAME: getDefault(process.env.DB_NAME, 'scrabble_db'),
 };
