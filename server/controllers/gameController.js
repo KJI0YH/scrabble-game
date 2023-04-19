@@ -21,9 +21,10 @@ export default function gameController(gameNamespace) {
 
         socket.on('create game', async ({ language, minutesPerPlayer, roomName }) => {
             const creator = socket.login;
-            const createdRooms = await db.collection('rooms').findOne({ creator: creator })
-            if (createdRooms) {
-                return socket.emit('create error', { message: 'You have already created a room' });
+            const createdRoom = await db.collection('rooms').findOne({ creator: creator })
+            if (createdRoom) {
+                socket.join(createdRoom._id.toString());
+                return socket.emit('game created', { room: createdRoom });
             }
 
             const room = {
@@ -88,8 +89,14 @@ export default function gameController(gameNamespace) {
             gameNamespace.emit('active rooms', { activeRooms: activeRooms });
         });
 
-        socket.on('start game', ({ id }) => {
+        socket.on('start game', async ({ id }) => {
+            const roomID = new ObjectId(id);
+            const result = await db.collection('rooms').updateOne({ _id: roomID }, { $set: { started: true } });
+
+            const room = await db.collection('rooms').findOne({ _id: roomID });
             gameNamespace.to(id).emit('game started');
+
+            console.log(`User ${socket.login} start the game ${room.name}`);
         });
 
         socket.on('disconnect', () => {

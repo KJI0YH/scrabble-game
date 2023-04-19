@@ -40,7 +40,7 @@ function WaitGamePage() {
 
     function handleLeaveGame() {
         gameSocket.emit('leave game', { id: room._id });
-        navigate('/game/find', { replace: true });
+        navigate('/', { replace: true });
     }
 
     return (
