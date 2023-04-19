@@ -8,3 +8,8 @@ export const gameSocket = io(serverURL + '/game', { autoConnect: false });
 gameSocket.onAny((event, ...args) => {
     console.log(event, args);
 });
+
+gameSocket.on('session', ({ login, userID }) => {
+    gameSocket.login = login;
+    gameSocket.userID = userID;
+});

@@ -2,6 +2,8 @@ import { authenticateToken } from "../middlewares/auth.js";
 import db from "../database/db.js";
 import { ObjectId } from "mongodb";
 
+const MAX_LETTERS_COUNT = 7;
+
 export default function gameController(gameNamespace) {
 
     gameNamespace.use(authenticateToken);
@@ -92,9 +94,37 @@ export default function gameController(gameNamespace) {
         socket.on('start game', async ({ id }) => {
             const roomID = new ObjectId(id);
             const result = await db.collection('rooms').updateOne({ _id: roomID }, { $set: { started: true } });
-
             const room = await db.collection('rooms').findOne({ _id: roomID });
-            gameNamespace.to(id).emit('game started');
+
+            // Get letters bag for game
+            const lettersBag = await db.collection('lettersBags').findOne({ language: { $regex: new RegExp(`^${room.language}$`, 'i') } });
+            let letters = lettersBag.letters;
+            const players = [];
+
+            // Giving each player the letters
+            for (const player of room.players) {
+                const user = await db.collection('users').findOne({ login: player });
+                if (user) {
+                    players.push({
+                        id: user._id,
+                        login: user.login,
+                        score: 0,
+                        letters: getLetters(MAX_LETTERS_COUNT, letters),
+                        timeLeft: room.minutesPerPlayer,
+                    });
+                }
+            }
+
+            const game = {
+                roomID: id,
+                tileBag: lettersBag.letters,
+                history: [],
+                players: players,
+                board: [],
+            };
+
+            const inserted = await db.collection('games').insertOne(game);
+            gameNamespace.to(id).emit('game started', { game: game });
 
             console.log(`User ${socket.login} start the game ${room.name}`);
         });
@@ -104,4 +134,23 @@ export default function gameController(gameNamespace) {
         });
 
     });
+}
+
+function getLetters(count, bag) {
+    let letters = [];
+    let availableLetters = bag.filter(letter => letter.count > 0);
+    for (let i = 0; i < count; i++) {
+        if (availableLetters.length === 0) break;
+        const index = Math.floor(Math.random() * availableLetters.length);
+        letters.push({
+            letter: availableLetters[index].letter,
+            value: availableLetters[index].value,
+        });
+
+        availableLetters[index].count--;
+        if (availableLetters[index].count === 0) {
+            availableLetters = availableLetters.filter(letter => letter.count > 0);
+        }
+    }
+    return letters;
 }

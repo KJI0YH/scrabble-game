@@ -8,6 +8,16 @@ function WaitGamePage() {
     const [room, setRoom] = useState(location.state.room);
 
     useEffect(() => {
+        if (!gameSocket.connected) {
+            const token = localStorage.getItem('token');
+            if (token) {
+                gameSocket.auth = { token };
+                gameSocket.connect();
+            } else {
+                navigate('/login', { replace: true });
+            }
+        }
+
         gameSocket.on('user joined', ({ message, room }) => {
             console.log(message);
             setRoom(room);
@@ -22,14 +32,15 @@ function WaitGamePage() {
             navigate('/', { replace: true });
         });
 
-        gameSocket.on('game started', () => {
-
+        gameSocket.on('game started', ({ game }) => {
+            navigate('/game', { replace: true, state: { game: game } });
         });
 
         return () => {
             gameSocket.off('user joined');
             gameSocket.off('user left');
-            // gameSocket.emit('leave game', { id: room.id });
+            gameSocket.off('game canceled');
+            gameSocket.off('game started');
             // gameSocket.disconnect();
         }
     }, []);

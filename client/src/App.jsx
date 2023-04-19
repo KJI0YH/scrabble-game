@@ -6,6 +6,7 @@ import HomePage from './pages/HomePage/HomePage.jsx';
 import CreateGamePage from './pages/CreateGamePage/CreateGamePage.jsx';
 import FindGamePage from './pages/FindGamePage/FindGamePage.jsx';
 import WaitGamePage from './pages/WaitGamePage/WaitGamePage.jsx';
+import GamePage from './pages/GamePage/GamePage.jsx';
 
 function App() {
     return (
@@ -17,6 +18,7 @@ function App() {
                 <Route path='/game/create' element={<CreateGamePage />} />
                 <Route path='/game/find' element={<FindGamePage />} />
                 <Route path='/game/wait' element={<WaitGamePage />} />
+                <Route path='/game' element={<GamePage />} />
             </Routes>
         </BrowserRouter>
     );

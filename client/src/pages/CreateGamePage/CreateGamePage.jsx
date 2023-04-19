@@ -9,20 +9,16 @@ function CreateGamePage() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            gameSocket.auth = { token };
-            gameSocket.connect();
+
+        if (!gameSocket.connected) {
+            const token = localStorage.getItem('token');
+            if (token) {
+                gameSocket.auth = { token };
+                gameSocket.connect();
+            } else {
+                navigate('/login', { replace: true });
+            }
         }
-
-        gameSocket.on('connect_error', (error) => {
-            navigate('/login', { replace: true });
-        });
-
-        gameSocket.on('session', ({ login, userID }) => {
-            gameSocket.login = login;
-            gameSocket.userID = userID;
-        });
 
         gameSocket.on('connect', () => {
             console.log(`Connected to server with socket ID: ${gameSocket.id}`);
@@ -35,6 +31,12 @@ function CreateGamePage() {
         gameSocket.on('game created', ({ room }) => {
             navigate('/game/wait', { replace: false, state: { room: room } });
         });
+
+        return () => {
+            gameSocket.off('connect');
+            gameSocket.off('create error');
+            gameSocket.off('game created');
+        }
 
     }, []);
 

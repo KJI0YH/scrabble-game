@@ -1,0 +1,25 @@
+.tile {
+    margin: 1px;
+    padding: 2px;
+    border: 1px solid black;
+    border-radius: 3px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.letter {
+    text-align: center;
+}
+
+.value {
+    position: absolute;
+    bottom: 1px;
+    right: 1px;
+    font-size: 11px;
+}

@@ -9,22 +9,17 @@ function FindGamePage() {
     const [rooms, setRooms] = useState([]);
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            gameSocket.auth = { token };
-            gameSocket.connect();
+        if (!gameSocket.connected) {
+            const token = localStorage.getItem('token');
+            if (token) {
+                gameSocket.auth = { token };
+                gameSocket.connect();
+            } else {
+                navigate('/login', { replace: true });
+            }
         }
 
         gameSocket.emit('active rooms');
-
-        gameSocket.on('connect_error', (error) => {
-            navigate('/login', { replace: true });
-        });
-
-        gameSocket.on('session', ({ login, userID }) => {
-            gameSocket.login = login;
-            gameSocket.userID = userID;
-        });
 
         gameSocket.on('connect', () => {
             console.log(`Connected to server with socket ID: ${gameSocket.id}`);
@@ -44,7 +39,6 @@ function FindGamePage() {
 
         return () => {
             gameSocket.off('connect_error');
-            gameSocket.off('session');
             gameSocket.off('active rooms');
             gameSocket.off('user joined');
             gameSocket.off('join error');
