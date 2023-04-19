@@ -7,15 +7,15 @@ function Room(props) {
 
     function handleJoin() {
         console.log(room);
-        gameSocket.emit('join game', { id: room.id });
+        gameSocket.emit('join game', { id: room._id });
     }
 
     return (
-        <div key={room.id} className="room-card">
-            <h3>{room.roomName}</h3>
-            <text>Language: {room.language}</text> <br />
-            <text>Minutes per player: {room.minutesPerPlayer}</text> <br />
-            <text>Creator: {room.creator}</text>
+        <div key={room._id} className="room-card">
+            <h3>{room.name}</h3>
+            <p>Language: {room.language}</p> <br />
+            <p>Minutes per player: {room.minutesPerPlayer}</p> <br />
+            <p>Creator: {room.creator}</p>
             <br />Players
             <ul>
                 {room.players.map((player) => (

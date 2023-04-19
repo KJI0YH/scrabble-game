@@ -34,7 +34,7 @@ function FindGamePage() {
             setRooms(activeRooms);
         });
 
-        gameSocket.on('joined', ({ room }) => {
+        gameSocket.on('user joined', ({ room }) => {
             navigate('/game/wait', { replace: true, state: { room: room } });
         });
 

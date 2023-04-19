@@ -8,18 +8,14 @@ function WaitGamePage() {
     const [room, setRoom] = useState(location.state.room);
 
     useEffect(() => {
-        gameSocket.on('user joined', ({ message, users }) => {
+        gameSocket.on('user joined', ({ message, room }) => {
             console.log(message);
-            const newRoom = { ...room };
-            newRoom.players = users;
-            setRoom(newRoom);
+            setRoom(room);
         });
 
-        gameSocket.on('user left', ({ message, users }) => {
+        gameSocket.on('user left', ({ message, room }) => {
             console.log(message);
-            const newRoom = { ...room };
-            newRoom.players = users;
-            setRoom(newRoom);
+            setRoom(room);
         });
 
         gameSocket.on('game canceled', () => {
@@ -39,17 +35,17 @@ function WaitGamePage() {
     }, []);
 
     function handleStartGame() {
-        gameSocket.emit('start game');
+        gameSocket.emit('start game', { id: room._id });
     }
 
     function handleLeaveGame() {
-        gameSocket.emit('leave game', { id: room.id });
-        navigate('/', { replace: true });
+        gameSocket.emit('leave game', { id: room._id });
+        navigate('/game/find', { replace: true });
     }
 
     return (
         <div>
-            <p>Room name: {room.roomName}</p>
+            <p>Room name: {room.name}</p>
             <p>Language: {room.language}</p>
             <p>Minutes per player: {room.minutesPerPlayer}</p>
             <p>Creator: {room.creator}</p>
