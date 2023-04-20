@@ -1,17 +1,32 @@
 .board {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(calc(100% / 17), 1fr));
+    grid-template-rows: repeat(auto-fit, minmax(calc(100% / 17), 1fr));
+    gap: 1px;
+    aspect-ratio: 1 / 1;
+    width: 80%;
+    user-select: none;
+}
+
+.axis {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(1vw + 1vh);
+    user-select: none;
+}
+
+.arrow-container {
+    flex: 1;
+    position: relative;
+    aspect-ratio: 1 / 1;
     border: 1px solid black;
-    border-radius: 10px;
-
-    padding: 10px;
-
+    border-radius: 4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-.grid {
-    display: flex;
-    flex-direction: column;
-}
-
-.row {
-    display: flex;
-    flex-direction: row;
+.arrow-container img {
+    width: 90%;
 }

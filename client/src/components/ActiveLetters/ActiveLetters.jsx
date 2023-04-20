@@ -15,12 +15,6 @@ function ActiveLetters(props) {
                     />
                 ))}
             </div>
-            <div>
-                <button>Submit</button>
-                <button>Leave</button>
-                <button>Swap</button>
-                <button>Skip</button>
-            </div>
         </div>
     )
 

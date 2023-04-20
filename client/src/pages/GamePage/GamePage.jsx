@@ -10,6 +10,26 @@ function GamePage() {
     const navigate = useNavigate();
     const [game, setGame] = useState(location.state.game);
     const [letters, setLetters] = useState(game.players.find(player => player.login === gameSocket.login).letters);
+    const [input, setInput] = useState({
+        row: -1,
+        col: -1,
+        horizontal: true,
+    });
+
+    const handleCellClick = (event) => {
+        const cell = event.target.closest('.board-cell');
+        if (cell) {
+            const row = cell.dataset.row;
+            const col = cell.dataset.col;
+            setInput(prevInput => {
+                return {
+                    row: row,
+                    col: col,
+                    horizontal: (row === prevInput.row && col === prevInput.col) ? !(prevInput.horizontal) : true,
+                }
+            });
+        }
+    }
 
     useEffect(() => {
         if (!gameSocket.connected) {
@@ -34,6 +54,8 @@ function GamePage() {
                 rowCount={game.board.size}
                 colCount={game.board.size}
                 premium={game.board.premium}
+                onCellClick={handleCellClick}
+                input={input}
             />
 
             <ActiveLetters

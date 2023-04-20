@@ -7,9 +7,9 @@ function Tile(props) {
         <div className="tile" style={{ backgroundColor: color }}>
             <div className='letter'>
                 {letter}
-                <div className='value'>
-                    {value}
-                </div>
+            </div>
+            <div className='value'>
+                {value}
             </div>
         </div>
     )
