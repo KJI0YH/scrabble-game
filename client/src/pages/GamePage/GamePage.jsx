@@ -31,8 +31,9 @@ function GamePage() {
     return (
         <div>
             <Board
-                rowCount={15}
-                colCount={15}
+                rowCount={game.board.size}
+                colCount={game.board.size}
+                premium={game.board.premium}
             />
 
             <ActiveLetters

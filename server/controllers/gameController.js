@@ -115,12 +115,17 @@ export default function gameController(gameNamespace) {
                 }
             }
 
+            const board = await db.collection('boards').findOne({ name: "classic" });
             const game = {
                 roomID: id,
-                tileBag: lettersBag.letters,
-                history: [],
                 players: players,
-                board: [],
+                tileBag: lettersBag.letters,
+                board: {
+                    size: board.size,
+                    premium: board.premium,
+                    state: [],
+                },
+                history: [],
             };
 
             const inserted = await db.collection('games').insertOne(game);

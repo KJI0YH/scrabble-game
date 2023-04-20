@@ -13,3 +13,7 @@ gameSocket.on('session', ({ login, userID }) => {
     gameSocket.login = login;
     gameSocket.userID = userID;
 });
+
+gameSocket.on('connect_error', () => {
+
+});
