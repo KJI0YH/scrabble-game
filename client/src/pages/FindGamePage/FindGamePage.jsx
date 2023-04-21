@@ -1,59 +1,63 @@
 import React, { useState, useEffect } from 'react';
-import { gameSocket } from '../../socket';
+import { findGameSocket } from '../../socket';
 import { useNavigate } from 'react-router-dom';
 import Room from '../../components/Room/Room';
 
 
 function FindGamePage() {
     const navigate = useNavigate();
-    const [rooms, setRooms] = useState([]);
+    const [rooms, setRooms] = useState(null);
 
     useEffect(() => {
-        if (!gameSocket.connected) {
+        if (!findGameSocket.connected) {
             const token = localStorage.getItem('token');
             if (token) {
-                gameSocket.auth = { token };
-                gameSocket.connect();
+                findGameSocket.auth = { token };
+                findGameSocket.connect();
             } else {
                 navigate('/login', { replace: true });
             }
         }
 
-        gameSocket.emit('active rooms');
+        findGameSocket.emit('active rooms');
 
-        gameSocket.on('connect', () => {
-            console.log(`Connected to server with socket ID: ${gameSocket.id}`);
-        });
-
-        gameSocket.on('active rooms', ({ activeRooms }) => {
+        findGameSocket.on('active rooms', ({ activeRooms }) => {
             setRooms(activeRooms);
         });
 
-        gameSocket.on('user joined', ({ room }) => {
-            navigate('/game/wait', { replace: true, state: { room: room } });
+        findGameSocket.on('join error', ({ message }) => {
+
         });
 
-        gameSocket.on('join error', ({ message }) => {
-            console.log(message);
+        findGameSocket.on('join success', () => {
+            navigate('/game/wait', { replace: true });
         });
 
         return () => {
-            gameSocket.off('connect_error');
-            gameSocket.off('active rooms');
-            gameSocket.off('user joined');
-            gameSocket.off('join error');
-            // gameSocket.disconnect();
+            findGameSocket.off('active rooms');
+            findGameSocket.off('join error');
+            findGameSocket.off('join success');
+            findGameSocket.disconnect();
         }
 
     }, []);
+
+    const handleJoin = (event) => {
+        const room = event.target.closest('.room-card');
+        if (room) {
+            console.log(room.dataset.id);
+            findGameSocket.emit('join game', { id: room.dataset.id });
+        }
+    }
 
     return (
         <div>
             <h2>Active Rooms</h2>
             <ul>
-                {rooms.map((room) => (
+                {rooms && rooms.map((room) => (
                     <Room
                         room={room}
+                        onJoin={handleJoin}
                     />
                 ))}
             </ul>

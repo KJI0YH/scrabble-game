@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { gameSocket } from '../../socket';
+import { createGameSocket } from '../../socket';
 
 function CreateGamePage() {
     const [language, setLanguage] = useState('English');
@@ -10,32 +10,28 @@ function CreateGamePage() {
 
     useEffect(() => {
 
-        if (!gameSocket.connected) {
+        if (!createGameSocket.connected) {
             const token = localStorage.getItem('token');
             if (token) {
-                gameSocket.auth = { token };
-                gameSocket.connect();
+                createGameSocket.auth = { token };
+                createGameSocket.connect();
             } else {
                 navigate('/login', { replace: true });
             }
         }
 
-        gameSocket.on('connect', () => {
-            console.log(`Connected to server with socket ID: ${gameSocket.id}`);
-        });
-
-        gameSocket.on('create error', ({ message }) => {
+        createGameSocket.on('create error', ({ message }) => {
             console.log(message);
         });
 
-        gameSocket.on('game created', ({ room }) => {
-            navigate('/game/wait', { replace: false, state: { room: room } });
+        createGameSocket.on('create success', () => {
+            navigate('/game/wait', { replace: false });
         });
 
         return () => {
-            gameSocket.off('connect');
-            gameSocket.off('create error');
-            gameSocket.off('game created');
+            createGameSocket.off('create error');
+            createGameSocket.off('create success');
+            createGameSocket.disconnect();
         }
 
     }, []);
@@ -53,11 +49,11 @@ function CreateGamePage() {
     }
 
     function handleCreateGame() {
-        gameSocket.emit('create game',
+        createGameSocket.emit('create game',
             {
-                roomName: roomName,
                 language: language,
                 minutesPerPlayer: minutesPerPlayer,
+                roomName: roomName,
             });
     }
 

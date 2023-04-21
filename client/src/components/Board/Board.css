@@ -4,7 +4,7 @@
     grid-template-rows: repeat(auto-fit, minmax(calc(100% / 17), 1fr));
     gap: 1px;
     aspect-ratio: 1 / 1;
-    width: 80%;
+    width: 70%;
     user-select: none;
 }
 

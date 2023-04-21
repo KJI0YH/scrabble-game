@@ -1,15 +1,14 @@
 import { useEffect, useState } from "react";
 import Board from "../../components/Board/Board";
-import { gameSocket } from "../../socket";
+import { playGameSocket } from "../../socket";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import ActiveLetters from "../../components/ActiveLetters/ActiveLetters";
 
-function GamePage() {
-    const location = useLocation();
+function PlayGamePage() {
     const navigate = useNavigate();
-    const [game, setGame] = useState(location.state.game);
-    const [letters, setLetters] = useState(game.players.find(player => player.login === gameSocket.login).letters);
+    const [game, setGame] = useState(null);
+    const [letters, setLetters] = useState(null);
     const [input, setInput] = useState({
         row: -1,
         col: -1,
@@ -32,37 +31,45 @@ function GamePage() {
     }
 
     useEffect(() => {
-        if (!gameSocket.connected) {
+        if (!playGameSocket.connected) {
             const token = localStorage.getItem('token');
             if (token) {
-                gameSocket.auth = { token };
-                gameSocket.connect();
+                playGameSocket.auth = { token };
+                playGameSocket.connect();
             } else {
                 navigate('/login', { replace: true });
             }
         }
 
+        playGameSocket.on('game state', ({ game }) => {
+            setGame(game);
+            setLetters(game.players.find(player => player.login === playGameSocket.login).letters);
+        });
+
         return () => {
-
+            playGameSocket.off('game state');
         }
-
     }, []);
 
     return (
         <div>
-            <Board
-                rowCount={game.board.size}
-                colCount={game.board.size}
-                premium={game.board.premium}
-                onCellClick={handleCellClick}
-                input={input}
-            />
+            {game && letters && (
+                <>
+                    <Board
+                        rowCount={game.board.size}
+                        colCount={game.board.size}
+                        premium={game.board.premium}
+                        onCellClick={handleCellClick}
+                        input={input}
+                    />
 
-            <ActiveLetters
-                letters={letters}
-            />
+                    <ActiveLetters
+                        letters={letters}
+                    />
+                </>
+            )}
         </div>
     )
 }
 
-export default GamePage;
+export default PlayGamePage;

@@ -1,10 +1,10 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
-import { config } from '../config.js';
-import { ErrorHandler } from '../middlewares/error.js';
-import { verifyToken } from '../middlewares/auth.js';
-import { checkExisting, addUser } from '../database/user.js';
+import { config } from '../../config.js';
+import { ErrorHandler } from '../../middlewares/error.js';
+import { verifyToken } from '../../middlewares/auth.js';
+import { checkExisting, addUser } from '../../database/user.js';
 
 const { JWT_SECRET, SALT_ROUNDS } = config;
 

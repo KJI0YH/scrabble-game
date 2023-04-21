@@ -1,5 +1,5 @@
-import { authenticateToken } from "../middlewares/auth.js";
-import db from "../database/db.js";
+import { authenticateToken } from "../../middlewares/auth.js";
+import db from "../../database/db.js";
 import { ObjectId } from "mongodb";
 
 const MAX_LETTERS_COUNT = 7;
@@ -141,7 +141,7 @@ export default function gameController(gameNamespace) {
     });
 }
 
-function getLetters(count, bag) {
+export function getLetters(count, bag) {
     let letters = [];
     let availableLetters = bag.filter(letter => letter.count > 0);
     for (let i = 0; i < count; i++) {

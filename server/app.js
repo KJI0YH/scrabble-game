@@ -9,8 +9,10 @@ import defaultRoutes from './routes/defaultRoutes.js';
 
 import { config } from './config.js';
 import { handleError } from './middlewares/error.js';
-import chatController from './controllers/chatController.js';
-import gameController from './controllers/gameController.js';
+import createController from './controllers/game/createController.js';
+import findController from './controllers/game/findController.js';
+import waitController from './controllers/game/waitController.js';
+import playController from './controllers/game/playController.js';
 
 const app = express();
 
@@ -25,12 +27,16 @@ const io = new Server(server, {
 });
 
 // Define namespaces
-const chatNamespace = io.of('/chat');
-const gameNamespace = io.of('/game');
+export const createGameNamespace = io.of('/game/create');
+export const findGameNamespace = io.of('/game/find');
+export const waitGameNamespace = io.of('/game/wait');
+export const playGameNamespace = io.of('/game/play');
 
 // Pass namespaces to controllers
-chatController(chatNamespace);
-gameController(gameNamespace);
+createController(createGameNamespace);
+findController(findGameNamespace);
+waitController(waitGameNamespace);
+playController(playGameNamespace);
 
 app.use(express.json());
 app.use(cors({ origin: config.ALLOW_LIST_HOSTS, credentials: true }));
