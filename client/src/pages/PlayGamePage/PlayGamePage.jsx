@@ -10,6 +10,7 @@ function PlayGamePage() {
     const navigate = useNavigate();
     const [game, setGame] = useState(null);
     const [letters, setLetters] = useState(null);
+    const [players, setPlayers] = useState(null);
     const [input, setInput] = useState({
         row: -1,
         col: -1,
@@ -45,16 +46,33 @@ function PlayGamePage() {
         playGameSocket.on('game state', ({ game }) => {
             setGame(game);
             setLetters(game.players.find(player => player.login === playGameSocket.login).letters);
+            setPlayers(game.players);
+        });
+
+        playGameSocket.on('timer tick', ({ login, timeLeft }) => {
+            setPlayers(prevPlayers => {
+                const updatedPlayers = prevPlayers.map(player => {
+                    if (player.login === login) {
+                        return {
+                            ...player,
+                            timeLeft: timeLeft
+                        };
+                    }
+                    return player;
+                });
+                return updatedPlayers;
+            });
         });
 
         return () => {
             playGameSocket.off('game state');
+            playGameSocket.off('timer tick');
         }
     }, []);
 
     return (
         <div>
-            {game && letters && (
+            {game && letters && players && (
                 <>
                     <Board
                         rowCount={game.board.size}
@@ -68,7 +86,7 @@ function PlayGamePage() {
                         letters={letters}
                     />
 
-                    {game.players.map(player => (
+                    {players.map(player => (
                         <Player
                             player={player}
                         />

@@ -1,4 +1,5 @@
 import ActiveLetters from '../ActiveLetters/ActiveLetters';
+import Timer from '../Timer/Timer';
 import './Player.css';
 import axios from 'axios';
 
@@ -18,9 +19,10 @@ function Player(props) {
             <div className="player-score">
                 Score: {player.score}
             </div>
-            <div className='player-time'>
-                Time left: {player.timeLeft}
-            </div>
+            <Timer
+                caption="Time left: "
+                seconds={player.timeLeft}
+            />
             <ActiveLetters
                 letters={player.letters}
             />

@@ -1,7 +1,9 @@
 import db from "../../database/db.js";
 import { authenticateToken } from "../../middlewares/auth.js";
-
+import { ObjectId } from "mongodb";
 export const MAX_LETTERS_COUNT = 7;
+
+const roomTimers = [];
 
 export default function playController(playNamespace) {
 
@@ -24,7 +26,40 @@ export default function playController(playNamespace) {
             if (game) {
                 playNamespace.to(roomID).emit('game state', { game: game });
             }
+
+            if (!roomTimers[roomID]) {
+                roomTimers[roomID] = setInterval(async () => {
+                    const game = await db.collection('games').findOne({ roomID: roomID });
+                    if (game) {
+                        const player = game.players[0];
+                        if (player.timeLeft > 0) {
+                            await db.collection('games').updateOne(
+                                { roomID: roomID },
+                                { $inc: { 'players.0.timeLeft': -1 } }
+                            );
+                        }
+
+                        // Time is up
+                        else {
+                            //playNamespace.to(roomID).emit('time up');
+                        }
+                        playNamespace.to(roomID).emit('timer tick', { login: player.login, timeLeft: Math.max(player.timeLeft - 1, 0) });
+                    }
+                }, 1000);
+            }
         }
+
+        socket.on('move submit', ({ id, letters }) => {
+
+        });
+
+        socket.on('move skip', () => {
+
+        });
+
+        socket.on('move swap', () => {
+
+        });
     });
 }
 
@@ -45,4 +80,8 @@ function getLetters(count, bag) {
         }
     }
     return letters;
+}
+
+function startTimer(roomID) {
+
 }

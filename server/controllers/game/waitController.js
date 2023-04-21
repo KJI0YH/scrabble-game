@@ -70,7 +70,7 @@ export default function waitController(waitNamespace) {
                         login: user.login,
                         score: 0,
                         letters: getLetters(MAX_LETTERS_COUNT, letters),
-                        timeLeft: room.minutesPerPlayer,
+                        timeLeft: room.minutesPerPlayer * 60,
                     });
                 }
             }
