@@ -4,6 +4,7 @@ import { playGameSocket } from "../../socket";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import ActiveLetters from "../../components/ActiveLetters/ActiveLetters";
+import Player from "../../components/Player/Player";
 
 function PlayGamePage() {
     const navigate = useNavigate();
@@ -66,6 +67,13 @@ function PlayGamePage() {
                     <ActiveLetters
                         letters={letters}
                     />
+
+                    {game.players.map(player => (
+                        <Player
+                            player={player}
+                        />
+                    ))}
+
                 </>
             )}
         </div>

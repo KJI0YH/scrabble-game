@@ -6,6 +6,7 @@ import { Server } from 'socket.io';
 
 import authRoutes from './routes/authRoutes.js';
 import defaultRoutes from './routes/defaultRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 
 import { config } from './config.js';
 import { handleError } from './middlewares/error.js';
@@ -44,6 +45,7 @@ app.use(cors({ origin: config.ALLOW_LIST_HOSTS, credentials: true }));
 // Routes
 app.use('/api', defaultRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/user', userRoutes);
 
 app.use((error, _request, response, _) => {
     handleError(error, response);
