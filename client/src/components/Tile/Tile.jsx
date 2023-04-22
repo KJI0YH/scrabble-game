@@ -4,7 +4,7 @@ function Tile(props) {
     const { letter, value } = props;
     const color = props.color ?? 'white';
     return (
-        <div className="tile" style={{ backgroundColor: color }}>
+        <div data-letter={letter} data-value={value} className="tile" style={{ backgroundColor: color }}>
             <div className='letter'>
                 {letter}
             </div>

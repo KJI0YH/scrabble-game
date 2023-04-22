@@ -83,7 +83,7 @@ export default function waitController(waitNamespace) {
                 board: {
                     size: board.size,
                     premium: board.premium,
-                    state: [],
+                    cells: [],
                 },
                 history: [],
             };

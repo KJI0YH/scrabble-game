@@ -3,10 +3,10 @@ import './ActiveLetters.css';
 import Tile from "../Tile/Tile";
 
 function ActiveLetters(props) {
-    const { letters } = props;
+    const { letters, onClick } = props;
     return (
         <div>
-            <div className="active-letters">
+            <div className="active-letters" onClick={onClick}>
                 {letters.map(letter => (
                     <Tile
                         key={letters.indexOf(letter)}

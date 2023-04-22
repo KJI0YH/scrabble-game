@@ -1,46 +1,39 @@
 import './Board.css';
 import Tile from '../Tile/Tile.jsx';
-import { useEffect, useRef, useState } from 'react';
-import arrow from './right-arrow.png';
+import Arrow from '../Arrow/Arrow';
+const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
 function Board(props) {
-    const { rowCount, colCount, premium, onCellClick, input } = props;
-    const bonuses = {
-        "triple word": {
-            color: '#EA3820',
-            caption: "3W"
-        },
-        "triple letter": {
-            color: '#0A8FDF',
-            caption: "3L"
-        },
-        "double word": {
-            color: '#E5B5B3',
-            caption: "2W",
-        },
-        "double letter": {
-            color: '#AFCBEF',
-            caption: "2L",
-        },
-        "default": {
-            color: '#FFFFFF',
-            caption: ''
-        }
+    const {
+        rowCount, colCount,
+        premium, oldLetters, newLetters,
+        onClick, input
+    } = props;
+
+    let letters = [];
+    if (oldLetters)
+        letters = letters.concat(oldLetters.map(letter => { return { ...letter, type: "old letter" } }));
+
+    if (newLetters)
+        letters = newLetters && letters.concat(newLetters.map(letter => { return { ...letter, type: "new letter" } }));
+
+    const colors = {
+        "triple word": '#EA3820',
+        "triple letter": '#0A8FDF',
+        "double word": '#E5B5B3',
+        "double letter": '#AFCBEF',
+        "old letter": '#FFFFFF',
+        "new letter": '#FFFF00',
+        "default": '#FFFFFF',
     }
-    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-    useEffect(() => {
-        const cells = document.querySelectorAll('.board-cell');
-        cells.forEach(cell => {
-            cell.addEventListener('click', onCellClick);
-        });
-
-        return () => {
-            cells.forEach(cell => {
-                cell.removeEventListener('click', onCellClick);
-            });
-        }
-    }, []);
+    const captions = {
+        "triple word": "3W",
+        "triple letter": "3L",
+        "double word": "2W",
+        "double letter": "2L",
+        "default": ''
+    }
 
     const renderBoard = () => {
         const cells = [];
@@ -59,39 +52,49 @@ function Board(props) {
             cells.push(<div className='axis'>{row + 1}</div>)
             for (let col = 0; col < colCount; col++) {
                 const cellIndex = row * colCount + col;
+
+                let caption = captions["default"];
+                let color = colors["default"];
+                let value = '';
+
                 const bonus = premium && premium.find(p => p.row === row && p.col === col);
-                const color = bonus ? bonuses[bonus.type].color : bonuses["default"].color;
-                const caption = bonus ? bonuses[bonus.type].caption : bonuses["default"].caption;
+                const letter = letters && letters.find(l => l.row === row && l.col === col);
+
+                if (letter) {
+                    caption = letter.cell.letter;
+                    value = letter.cell.value;
+                    color = colors[letter.type];
+                } else if (bonus) {
+                    caption = captions[bonus.type];
+                    color = colors[bonus.type];
+                }
 
                 let cell = (
                     <Tile
                         color={color}
                         letter={caption}
+                        value={value}
                     />
                 );
+
                 if (input.row >= 0 && input.row < rowCount &&
                     input.col >= 0 && input.col < colCount &&
-                    input.row == row && input.col == col) {
+                    input.row === row && input.col === col) {
                     cell = (
-                        <div className='arrow-container' style={{ backgroundColor: color }}>
-                            <img
-                                src={arrow}
-                                alt="arrow"
-                                style={{
-                                    transform: input.horizontal ? 'none' : 'rotate(90deg)',
-                                }} />
-                        </div>
+                        <Arrow
+                            color={color}
+                            horizontal={input.horizontal}
+                        />
                     )
                 }
                 cells.push(
-                    <div data-row={row} data-col={col} className='board-cell'>
+                    <div key={cellIndex} data-row={row} data-col={col} className='board-cell' onClick={onClick}>
                         {cell}
                     </div>
 
                 )
             }
         }
-
         return cells;
     }
 
