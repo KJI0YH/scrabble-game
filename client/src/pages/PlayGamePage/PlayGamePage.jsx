@@ -6,6 +6,12 @@ import ActiveLetters from "../../components/ActiveLetters/ActiveLetters";
 import Player from "../../components/Player/Player";
 import TileBag from "../../components/TileBag/TileBag";
 
+const defaultInput = {
+    row: -1,
+    col: -1,
+    horizontal: true,
+}
+
 function PlayGamePage() {
     const navigate = useNavigate();
     const [game, setGame] = useState(null);
@@ -13,11 +19,8 @@ function PlayGamePage() {
     const [oldLetters, setOldLetters] = useState([]);
     const [newLetters, setNewLetters] = useState([]);
     const [players, setPlayers] = useState([]);
-    const [input, setInput] = useState({
-        row: -1,
-        col: -1,
-        horizontal: true,
-    });
+    const [canMove, setCanMove] = useState(false);
+    const [input, setInput] = useState(defaultInput);
 
     const handleBoardCellClick = (event) => {
         const cell = event.target.closest('.board-cell');
@@ -89,11 +92,11 @@ function PlayGamePage() {
     };
 
     const handleSubmit = () => {
-        // Unselect all tiles
-        document.querySelectorAll('.tile').forEach(tile => tile.classList.remove('selected'));
 
-        playGameSocket.emit('move submit', { id: game.roomID, letters: newLetters });
-
+        if (canMove && newLetters.length > 0) {
+            console.log(newLetters)
+            playGameSocket.emit('move submit', { id: game.roomID, letters: newLetters });
+        }
     }
 
     useEffect(() => {
@@ -113,9 +116,21 @@ function PlayGamePage() {
             setPlayers(game.players);
             setOldLetters(game.board.cells);
             setNewLetters([]);
+
+            // Set default input
+            setInput(defaultInput);
+
+            // Unselect all tiles
+            document.querySelectorAll('.tile').forEach(tile => tile.classList.remove('selected'));
         });
 
         playGameSocket.on('timer tick', ({ login, timeLeft }) => {
+            if (playGameSocket.login === login) {
+                setCanMove(true);
+            } else {
+                setCanMove(false);
+            }
+
             setPlayers(prevPlayers => {
                 const updatedPlayers = prevPlayers.map(player => {
                     if (player.login === login) {

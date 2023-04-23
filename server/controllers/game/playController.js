@@ -24,7 +24,7 @@ export default function playController(playNamespace) {
             socket.join(roomID);
             const game = await db.collection('games').findOne({ roomID: roomID });
             if (game) {
-                playNamespace.to(roomID).emit('game state', { game: game });
+                socket.emit('game state', { game: game });
             }
 
             if (!roomTimers[roomID]) {
@@ -81,8 +81,10 @@ export default function playController(playNamespace) {
                 await db.collection('games').updateOne({ roomID: id }, { $set: { "tileBag": bag } });
                 await db.collection('games').updateOne({ roomID: id, "players.login": socket.login }, { $set: { "players.$.letters": playerLetters } });
 
-                const newState = await db.collection('games').findOne({ roomID: id });
+                // Passing the move to the next player
+                await nextPlayer(id);
 
+                const newState = await db.collection('games').findOne({ roomID: id });
                 playNamespace.to(id).emit('game state', { game: newState });
             }
         });
@@ -114,4 +116,23 @@ function getLetters(count, bag) {
         }
     }
     return letters;
+}
+
+async function nextPlayer(roomID) {
+    const game = await db.collection('games').findOne({ roomID: roomID });
+    if (game) {
+        const players = game.players;
+
+        const firstPlayer = players.shift();
+        players.push(firstPlayer)
+
+        await db.collection('games').updateOne(
+            { roomID: roomID },
+            {
+                $set: {
+                    "players": players
+                }
+            }
+        );
+    }
 }
