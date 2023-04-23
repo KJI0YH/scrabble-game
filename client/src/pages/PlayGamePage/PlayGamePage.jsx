@@ -63,24 +63,27 @@ function PlayGamePage() {
         if (input.row >= 0 && input.row < game.board.size &&
             input.col >= 0 && input.col < game.board.size) {
             const cell = event.target.closest('.tile');
-            if (cell) {
-                const letter = cell.dataset.letter;
-                const value = cell.dataset.value;
-                const newLetter = {
-                    cell: {
-                        letter: letter,
-                        value: value,
-                    },
-                    row: input.row,
-                    col: input.col,
-                }
-                setNewLetters(prev => [
-                    ...prev,
-                    newLetter,
-                ]);
+            if (cell && !cell.classList.contains('selected')) {
+                cell.classList.add('selected');
+                if (cell) {
+                    const letter = cell.dataset.letter;
+                    const value = cell.dataset.value;
+                    const newLetter = {
+                        cell: {
+                            letter: letter,
+                            value: value,
+                        },
+                        row: input.row,
+                        col: input.col,
+                    }
+                    setNewLetters(prev => [
+                        ...prev,
+                        newLetter,
+                    ]);
 
-                const newInput = nextInput(input, game.board.size);
-                setInput(newInput);
+                    const newInput = nextInput(input, game.board.size);
+                    setInput(newInput);
+                }
             }
         }
     }

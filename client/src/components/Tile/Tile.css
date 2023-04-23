@@ -11,6 +11,10 @@
     user-select: none;
 }
 
+.selected {
+    background-color: aqua;
+}
+
 .letter {
     font-size: calc(1vw + 1vh);
     text-align: center;

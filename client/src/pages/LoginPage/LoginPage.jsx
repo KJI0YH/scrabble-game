@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { gameSocket } from '../../socket';
 
 function LoginPage() {
     const [login, setLogin] = useState('');
