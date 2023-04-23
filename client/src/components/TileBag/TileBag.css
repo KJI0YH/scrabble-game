@@ -1,0 +1,22 @@
+.tile-bag {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    border: 1px solid black;
+    padding: 5px;
+    border-radius: 10px;
+}
+
+.tile-bag-cell {
+    display: flex;
+    flex-direction: row;
+    margin: 10px;
+}
+
+.tile-bag-cell-letter {
+    font-weight: bold;
+}
+
+.tile-bag-cell-count {
+    font-style: italic;
+}

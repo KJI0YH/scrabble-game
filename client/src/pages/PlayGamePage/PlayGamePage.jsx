@@ -4,6 +4,7 @@ import { playGameSocket } from "../../socket";
 import { useNavigate } from "react-router-dom";
 import ActiveLetters from "../../components/ActiveLetters/ActiveLetters";
 import Player from "../../components/Player/Player";
+import TileBag from "../../components/TileBag/TileBag";
 
 function PlayGamePage() {
     const navigate = useNavigate();
@@ -161,6 +162,10 @@ function PlayGamePage() {
                             player={player}
                         />
                     ))}
+
+                    <TileBag
+                        tiles={game.tileBag}
+                    />
 
                 </>
             )}
