@@ -73,7 +73,7 @@ const authController = {
             throw new ErrorHandler(401, 'Unauthorized action. JWT expired');
         }
 
-        return res.json({ success: true, decoded });
+        return res.status(200).json({ success: true, token: token, decoded });
     }
 }
 
