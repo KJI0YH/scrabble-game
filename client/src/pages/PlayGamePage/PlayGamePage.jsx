@@ -1,3 +1,4 @@
+import './PlayGamePage.css';
 import { useEffect, useState } from "react";
 import Board from "../../components/Board/Board";
 import { playGameSocket } from "../../socket";
@@ -6,6 +7,7 @@ import ActiveLetters from "../../components/ActiveLetters/ActiveLetters";
 import Player from "../../components/Player/Player";
 import TileBag from "../../components/TileBag/TileBag";
 import SkipModal from "../../components/SkipModal/SkipModal";
+import SwapModal from "../../components/SwapModal/SwapModal";
 
 const defaultInput = {
     row: -1,
@@ -23,7 +25,8 @@ function PlayGamePage() {
     const [canMove, setCanMove] = useState(false);
     const [input, setInput] = useState(defaultInput);
 
-    const [skipModal, setSkipModal] = useState(false);
+    const [showSkipModal, setShowSkipModal] = useState(false);
+    const [showSwapModal, setShowSwapModal] = useState(false);
 
     const handleBoardCellClick = (event) => {
         const cell = event.target.closest('.board-cell');
@@ -95,7 +98,6 @@ function PlayGamePage() {
     };
 
     const handleSubmit = () => {
-
         if (canMove && newLetters.length > 0) {
             console.log(newLetters)
             playGameSocket.emit('move submit', { id: game.roomID, letters: newLetters });
@@ -105,7 +107,14 @@ function PlayGamePage() {
     const handleSkip = () => {
         if (canMove) {
             playGameSocket.emit('move skip', { id: game.roomID });
-            setSkipModal(false);
+            setShowSkipModal(false);
+        }
+    }
+
+    const handleSwap = (letters) => {
+        if (canMove) {
+            playGameSocket.emit('move swap', { id: game.roomID, letters: letters });
+            setShowSwapModal(false);
         }
     }
 
@@ -181,7 +190,8 @@ function PlayGamePage() {
                     />
 
                     <button onClick={handleSubmit}>Submit</button>
-                    <button onClick={() => { canMove && setSkipModal(true) }}>Skip</button>
+                    <button onClick={() => { canMove && setShowSkipModal(true) }}>Skip</button>
+                    <button onClick={() => { canMove && setShowSwapModal(true) }}>Swap</button>
 
                     {players.map(player => (
                         <Player
@@ -194,9 +204,16 @@ function PlayGamePage() {
                     />
 
                     <SkipModal
-                        visible={skipModal}
+                        visible={showSkipModal}
                         onClick={handleSkip}
-                        onCancel={() => setSkipModal(false)}
+                        onCancel={() => setShowSkipModal(false)}
+                    />
+
+                    <SwapModal
+                        visible={showSwapModal}
+                        letters={playerLetters}
+                        onClick={handleSwap}
+                        onCancel={() => setShowSwapModal(false)}
                     />
 
                 </>

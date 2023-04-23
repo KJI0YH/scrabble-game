@@ -104,8 +104,41 @@ export default function playController(playNamespace) {
             playNamespace.to(id).emit('game state', { game: newState });
         });
 
-        socket.on('move swap', () => {
+        socket.on('move swap', async ({ id, letters }) => {
+            const game = await db.collection('games').findOne({ roomID: id });
+            if (game) {
 
+                const history = {
+                    player: socket.login,
+                    timestamp: new Date(),
+                    type: 'swap',
+                    letters: letters,
+                };
+
+                await db.collection('games').updateOne({ roomID: id }, { $push: { "history": history } });
+
+                const bag = game.tileBag;
+                const oldLetters = game.players.find(player => player.login = socket.login).letters;
+                await letters.map(letter => {
+                    const index = oldLetters.findIndex(item => item.letter === letter.letter);
+                    if (index !== -1) {
+                        oldLetters.splice(index, 1);
+                        bag.map(tile => tile.letter === letter.letter ? tile.count++ : tile.count);
+                    }
+                });
+
+                const newLetters = getLetters(letters.length, bag);
+                const playerLetters = oldLetters.concat(newLetters);
+
+                await db.collection('games').updateOne({ roomID: id }, { $set: { "tileBag": bag } });
+                await db.collection('games').updateOne({ roomID: id, "players.login": socket.login }, { $set: { "players.$.letters": playerLetters } });
+
+                // Passing the move to the next player
+                await nextPlayer(id);
+
+                const newState = await db.collection('games').findOne({ roomID: id });
+                playNamespace.to(id).emit('game state', { game: newState });
+            }
         });
     });
 }
