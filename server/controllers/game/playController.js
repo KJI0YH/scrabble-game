@@ -49,8 +49,42 @@ export default function playController(playNamespace) {
             }
         }
 
-        socket.on('move submit', ({ id, letters }) => {
+        socket.on('move submit', async ({ id, letters }) => {
+            const game = await db.collection('games').findOne({ roomID: id });
+            if (game) {
+                // Validate input letters
 
+                await db.collection('games').updateOne({ roomID: id }, { $push: { "board.cells": { $each: letters } } });
+
+                const history = {
+                    player: socket.login,
+                    timestamp: new Date(),
+                    type: 'submit',
+                    points: 0,
+                    words: [],
+                };
+
+                await db.collection('games').updateOne({ roomID: id }, { $push: { "history": history } });
+
+                // Issuing new letters to the player
+                const oldLetters = game.players.find(player => player.login = socket.login).letters;
+                await letters.map(letter => {
+                    const index = oldLetters.findIndex(item => item.letter === letter.cell.letter);
+                    if (index !== -1) {
+                        oldLetters.splice(index, 1);
+                    }
+                });
+                const bag = game.tileBag;
+                const newLetters = getLetters(letters.length, bag);
+                const playerLetters = oldLetters.concat(newLetters);
+
+                await db.collection('games').updateOne({ roomID: id }, { $set: { "tileBag": bag } });
+                await db.collection('games').updateOne({ roomID: id, "players.login": socket.login }, { $set: { "players.$.letters": playerLetters } });
+
+                const newState = await db.collection('games').findOne({ roomID: id });
+
+                playNamespace.to(id).emit('game state', { game: newState });
+            }
         });
 
         socket.on('move skip', () => {
@@ -80,8 +114,4 @@ function getLetters(count, bag) {
         }
     }
     return letters;
-}
-
-function startTimer(roomID) {
-
 }

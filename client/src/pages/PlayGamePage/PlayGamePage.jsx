@@ -40,16 +40,16 @@ function PlayGamePage() {
     function nextInput(input, size) {
         if (input.horizontal) {
             input.col++;
-            while (((oldLetters && oldLetters.find(letter => letter.col === input.col && letter.row === letter.row)) ||
+            while (((oldLetters && oldLetters.find(letter => letter.col === input.col && letter.row === input.row)) ||
                 (newLetters && newLetters.find(letter => letter.col === input.col && letter.row === input.row))) &&
                 input.col <= size) {
                 input.col++;
             }
         } else {
             input.row++;
-            while (((oldLetters && oldLetters.find(letter => letter.col === input.col && letter.row === letter.row)) ||
+            while (((oldLetters && oldLetters.find(letter => letter.col === input.col && letter.row === input.row)) ||
                 (newLetters && newLetters.find(letter => letter.col === input.col && letter.row === input.row))) &&
-                input.col <= size) {
+                input.row <= size) {
                 input.row++;
             }
         }
@@ -65,27 +65,34 @@ function PlayGamePage() {
             const cell = event.target.closest('.tile');
             if (cell && !cell.classList.contains('selected')) {
                 cell.classList.add('selected');
-                if (cell) {
-                    const letter = cell.dataset.letter;
-                    const value = cell.dataset.value;
-                    const newLetter = {
-                        cell: {
-                            letter: letter,
-                            value: value,
-                        },
-                        row: input.row,
-                        col: input.col,
-                    }
-                    setNewLetters(prev => [
-                        ...prev,
-                        newLetter,
-                    ]);
-
-                    const newInput = nextInput(input, game.board.size);
-                    setInput(newInput);
+                const letter = cell.dataset.letter;
+                const value = parseInt(cell.dataset.value);
+                const newLetter = {
+                    cell: {
+                        letter: letter,
+                        value: value,
+                    },
+                    row: input.row,
+                    col: input.col,
                 }
+                setNewLetters(prev => [
+                    ...prev,
+                    newLetter,
+                ]);
+
+                const newInput = nextInput(input, game.board.size);
+                setInput(newInput);
+
             }
         }
+    };
+
+    const handleSubmit = () => {
+        // Unselect all tiles
+        document.querySelectorAll('.tile').forEach(tile => tile.classList.remove('selected'));
+
+        playGameSocket.emit('move submit', { id: game.roomID, letters: newLetters });
+
     }
 
     useEffect(() => {
@@ -103,7 +110,8 @@ function PlayGamePage() {
             setGame(game);
             setPlayerLetters(game.players.find(player => player.login === playGameSocket.login).letters);
             setPlayers(game.players);
-            setOldLetters(game.board.letters);
+            setOldLetters(game.board.cells);
+            setNewLetters([]);
         });
 
         playGameSocket.on('timer tick', ({ login, timeLeft }) => {
@@ -145,6 +153,8 @@ function PlayGamePage() {
                         letters={playerLetters}
                         onClick={handleActiveLetterClick}
                     />
+
+                    <button onClick={handleSubmit}>Submit</button>
 
                     {players.map(player => (
                         <Player
