@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import ActiveLetters from "../../components/ActiveLetters/ActiveLetters";
 import Player from "../../components/Player/Player";
 import TileBag from "../../components/TileBag/TileBag";
+import SkipModal from "../../components/SkipModal/SkipModal";
 
 const defaultInput = {
     row: -1,
@@ -21,6 +22,8 @@ function PlayGamePage() {
     const [players, setPlayers] = useState([]);
     const [canMove, setCanMove] = useState(false);
     const [input, setInput] = useState(defaultInput);
+
+    const [skipModal, setSkipModal] = useState(false);
 
     const handleBoardCellClick = (event) => {
         const cell = event.target.closest('.board-cell');
@@ -102,6 +105,7 @@ function PlayGamePage() {
     const handleSkip = () => {
         if (canMove) {
             playGameSocket.emit('move skip', { id: game.roomID });
+            setSkipModal(false);
         }
     }
 
@@ -177,7 +181,7 @@ function PlayGamePage() {
                     />
 
                     <button onClick={handleSubmit}>Submit</button>
-                    <button onClick={handleSkip}>Skip</button>
+                    <button onClick={() => { canMove && setSkipModal(true) }}>Skip</button>
 
                     {players.map(player => (
                         <Player
@@ -187,6 +191,12 @@ function PlayGamePage() {
 
                     <TileBag
                         tiles={game.tileBag}
+                    />
+
+                    <SkipModal
+                        visible={skipModal}
+                        onClick={handleSkip}
+                        onCancel={() => setSkipModal(false)}
                     />
 
                 </>
