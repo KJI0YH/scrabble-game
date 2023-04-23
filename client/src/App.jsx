@@ -39,7 +39,7 @@ function App() {
     return (
         <BrowserRouter>
             <Routes>
-                <Route path='/login' element={isLogged ? <Navigate to='/' /> : <LoginPage />} />
+                <Route path='/login' element={isLogged ? <Navigate to='/' /> : <LoginPage onLogin={() => setIsLogged(true)} />} />
                 <Route path='/register' element={<RegisterPage />} />
                 <Route path='/' element={isLogged ? <HomePage /> : <Navigate to='/login' />} />
                 <Route path='/game/create' element={<CreateGamePage />} />

@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-function LoginPage() {
+function LoginPage(props) {
+    const { onLogin } = props;
     const [login, setLogin] = useState('');
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
@@ -20,8 +21,8 @@ function LoginPage() {
 
         try {
             const response = await axios.post('http://localhost:8080/api/auth/login', { login: login, password: password });
-            localStorage.removeItem('token');
             localStorage.setItem('token', response.data.token);
+            onLogin();
             navigate('/', { replace: true });
         } catch (error) {
             console.error(error);
