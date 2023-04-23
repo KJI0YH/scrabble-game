@@ -99,6 +99,12 @@ function PlayGamePage() {
         }
     }
 
+    const handleSkip = () => {
+        if (canMove) {
+            playGameSocket.emit('move skip', { id: game.roomID });
+        }
+    }
+
     useEffect(() => {
         if (!playGameSocket.connected) {
             const token = localStorage.getItem('token');
@@ -171,6 +177,7 @@ function PlayGamePage() {
                     />
 
                     <button onClick={handleSubmit}>Submit</button>
+                    <button onClick={handleSkip}>Skip</button>
 
                     {players.map(player => (
                         <Player

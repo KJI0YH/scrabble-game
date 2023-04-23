@@ -89,8 +89,19 @@ export default function playController(playNamespace) {
             }
         });
 
-        socket.on('move skip', () => {
+        socket.on('move skip', async ({ id }) => {
+            await nextPlayer(id);
 
+            const history = {
+                player: socket.login,
+                timestamp: new Date(),
+                type: 'skip',
+            };
+
+            await db.collection('games').updateOne({ roomID: id }, { $push: { "history": history } });
+
+            const newState = await db.collection('games').findOne({ roomID: id });
+            playNamespace.to(id).emit('game state', { game: newState });
         });
 
         socket.on('move swap', () => {
