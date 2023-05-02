@@ -22,6 +22,7 @@ function Board(props) {
         "triple letter": '#0A8FDF',
         "double word": '#E5B5B3',
         "double letter": '#AFCBEF',
+        "initial": '#E5B5B3',
         "old letter": '#FFFFFF',
         "new letter": '#FFFF00',
         "default": '#FFFFFF',
@@ -32,6 +33,7 @@ function Board(props) {
         "triple letter": "3L",
         "double word": "2W",
         "double letter": "2L",
+        "initial": '★',
         "default": ''
     }
 
