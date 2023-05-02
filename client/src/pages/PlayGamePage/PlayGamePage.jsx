@@ -92,7 +92,6 @@ function PlayGamePage() {
 
                 const newInput = nextInput(input, game.board.size);
                 setInput(newInput);
-
             }
         }
     };
@@ -200,7 +199,7 @@ function PlayGamePage() {
                     ))}
 
                     <TileBag
-                        tiles={game.tileBag}
+                        tiles={game.bag}
                     />
 
                     <SkipModal

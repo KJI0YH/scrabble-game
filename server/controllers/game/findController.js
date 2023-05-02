@@ -6,7 +6,7 @@ export default function findController(findNamespace) {
 
     findNamespace.use(authenticateToken);
 
-    findNamespace.on('connection', (socket) => {
+    findNamespace.on('connection', async (socket) => {
 
         console.log(`User ${socket.login} connected to game/find socket`);
 
@@ -14,6 +14,12 @@ export default function findController(findNamespace) {
             login: socket.login,
             userID: socket.userID,
         });
+
+        // Check existing wait room
+        const existWait = await checkExistWait(socket.login);
+        if (existWait) {
+            socket.emit('join success');
+        }
 
         socket.on('active rooms', async () => {
             const activeRooms = await getActiveRooms();
@@ -24,9 +30,6 @@ export default function findController(findNamespace) {
             const roomID = new ObjectId(id);
             const room = await db.collection('rooms').findOne({ _id: roomID });
             if (room) {
-                if (room.started) {
-                    return socket.emit('join error', { message: 'Game has already started' });
-                }
                 if (!room.players.includes(socket.login)) {
                     await db.collection('rooms').updateOne({ _id: roomID }, { $push: { players: socket.login } });
                 }
@@ -40,10 +43,16 @@ export default function findController(findNamespace) {
         });
 
     });
-
 }
 
 export async function getActiveRooms() {
     const activeRooms = await db.collection('rooms').find().toArray();
     return activeRooms;
+}
+
+async function checkExistWait(login) {
+    const waitRoom = await db.collection('rooms').findOne({ players: { $in: [login] } });
+    if (waitRoom) {
+        return waitRoom;
+    }
 }

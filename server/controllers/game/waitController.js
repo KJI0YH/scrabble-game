@@ -3,8 +3,9 @@ import { ObjectId } from "mongodb";
 import { authenticateToken } from "../../middlewares/auth.js";
 import { getActiveRooms } from "./findController.js";
 import { findGameNamespace } from "../../app.js";
-import { getLetters } from "./gameController.js";
+import { getLetters } from "./playController.js";
 import { MAX_LETTERS_COUNT } from "./playController.js";
+import { createParty } from "./createController.js";
 
 export default function waitController(waitNamespace) {
 
@@ -52,43 +53,7 @@ export default function waitController(waitNamespace) {
         });
 
         socket.on('start game', async ({ id }) => {
-            const roomID = new ObjectId(id);
-            await db.collection('rooms').updateOne({ _id: roomID }, { $set: { started: true } });
-            const room = await db.collection('rooms').findOne({ _id: roomID });
-
-            // Get letters bag for game
-            const lettersBag = await db.collection('lettersBags').findOne({ language: { $regex: new RegExp(`^${room.language}$`, 'i') } });
-            let letters = lettersBag.letters;
-            const players = [];
-
-            // Giving each player the letters
-            for (const player of room.players) {
-                const user = await db.collection('users').findOne({ login: player });
-                if (user) {
-                    players.push({
-                        id: user._id,
-                        login: user.login,
-                        score: 0,
-                        letters: getLetters(MAX_LETTERS_COUNT, letters),
-                        timeLeft: room.minutesPerPlayer * 60,
-                    });
-                }
-            }
-
-            const board = await db.collection('boards').findOne({ name: "classic" });
-            const game = {
-                roomID: id,
-                players: players,
-                tileBag: lettersBag.letters,
-                board: {
-                    size: board.size,
-                    premium: board.premium,
-                    cells: [],
-                },
-                history: [],
-            };
-
-            await db.collection('games').insertOne(game);
+            await createParty(id);
             waitNamespace.to(id).emit('game started');
         });
     });

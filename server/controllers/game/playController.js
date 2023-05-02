@@ -1,5 +1,6 @@
 import db from "../../database/db.js";
 import { authenticateToken } from "../../middlewares/auth.js";
+import { validateWord } from "../../utils/wordsDictionary.js";
 import { ObjectId } from "mongodb";
 export const MAX_LETTERS_COUNT = 7;
 
@@ -9,86 +10,80 @@ export default function playController(playNamespace) {
 
     playNamespace.use(authenticateToken);
 
+    // Connection to game
     playNamespace.on('connection', async (socket) => {
 
         console.log(`User ${socket.login} connected to game/play socket`);
 
+        // Send session credentials
         socket.emit('session', {
             login: socket.login,
             userID: socket.userID,
         });
 
-        const room = await db.collection('rooms').findOne({ players: { $elemMatch: { $eq: socket.login } } })
-        if (room) {
-            const roomID = room._id.toString();
+        // Check active party for player
+        const activeParty = await checkActiveParty(socket.login);
+        if (activeParty) {
+            const roomID = activeParty.roomID;
             socket.join(roomID);
-            const game = await db.collection('games').findOne({ roomID: roomID });
-            if (game) {
-                socket.emit('game state', { game: game });
-            }
+            socket.emit('game state', { game: activeParty });
 
+            // Add game timer
             if (!roomTimers[roomID]) {
-                roomTimers[roomID] = setInterval(async () => {
-                    const game = await db.collection('games').findOne({ roomID: roomID });
-                    if (game) {
-                        const player = game.players[0];
-                        if (player.timeLeft > 0) {
-                            await db.collection('games').updateOne(
-                                { roomID: roomID },
-                                { $inc: { 'players.0.timeLeft': -1 } }
-                            );
-                        }
-
-                        // Time is up
-                        else {
-                            //playNamespace.to(roomID).emit('time up');
-                        }
-                        playNamespace.to(roomID).emit('timer tick', { login: player.login, timeLeft: Math.max(player.timeLeft - 1, 0) });
-                    }
+                roomTimers[roomID] = setInterval(async => {
+                    timerTick(roomID, playNamespace)
                 }, 1000);
             }
         }
 
+        // Standart move, submit tiles, scoring and get new letters
         socket.on('move submit', async ({ id, letters }) => {
-            const game = await db.collection('games').findOne({ roomID: id });
-            if (game) {
-                // Validate input letters
+            const party = await db.collection('parties').findOne({ roomID: id });
+            if (party) {
 
-                await db.collection('games').updateOne({ roomID: id }, { $push: { "board.cells": { $each: letters } } });
+                // Get player from party
+                const player = party.players.find(p => p.login === socket.login);
 
-                const history = {
-                    player: socket.login,
-                    timestamp: new Date(),
-                    type: 'submit',
-                    points: 0,
-                    words: [],
-                };
+                // User letters verification
+                const valid = verificateLetters(player.letters, letters.map(letter => letter.cell));
 
-                await db.collection('games').updateOne({ roomID: id }, { $push: { "history": history } });
+                if (valid) {
 
-                // Issuing new letters to the player
-                const oldLetters = game.players.find(player => player.login = socket.login).letters;
-                await letters.map(letter => {
-                    const index = oldLetters.findIndex(item => item.letter === letter.cell.letter);
-                    if (index !== -1) {
-                        oldLetters.splice(index, 1);
-                    }
-                });
-                const bag = game.tileBag;
-                const newLetters = getLetters(letters.length, bag);
-                const playerLetters = oldLetters.concat(newLetters);
+                    // Check validity of postions
 
-                await db.collection('games').updateOne({ roomID: id }, { $set: { "tileBag": bag } });
-                await db.collection('games').updateOne({ roomID: id, "players.login": socket.login }, { $set: { "players.$.letters": playerLetters } });
+                    // Scoring
 
-                // Passing the move to the next player
-                await nextPlayer(id);
+                    // Add players cells to board
+                    await db.collection('parties').updateOne({ roomID: id }, { $push: { "board.cells": { $each: letters } } });
 
-                const newState = await db.collection('games').findOne({ roomID: id });
+                    // Update party history
+                    const history = {
+                        player: socket.login,
+                        timestamp: new Date(),
+                        type: 'submit',
+                        points: 0,
+                        words: [],
+                    };
+                    await db.collection('parties').updateOne({ roomID: id }, { $push: { "history": history } });
+
+                    // Issuing new letters to the player
+                    const newLetters = getLetters(MAX_LETTERS_COUNT - player.letters.length, party.bag);
+                    player.letters = player.letters.concat(newLetters);
+
+                    // Making changes to the state of the party
+                    await db.collection('parties').updateOne({ roomID: id }, { $set: { "bag": party.bag } });
+                    await db.collection('parties').updateOne({ roomID: id, "players.login": socket.login }, { $set: { "players.$.letters": player.letters } });
+
+                    // Passing the move to the next player
+                    await nextPlayer(id);
+                }
+
+                const newState = await db.collection('parties').findOne({ roomID: id });
                 playNamespace.to(id).emit('game state', { game: newState });
             }
         });
 
+        // Skipping witout replacing tiles
         socket.on('move skip', async ({ id }) => {
             await nextPlayer(id);
 
@@ -98,52 +93,63 @@ export default function playController(playNamespace) {
                 type: 'skip',
             };
 
-            await db.collection('games').updateOne({ roomID: id }, { $push: { "history": history } });
+            await db.collection('parties').updateOne({ roomID: id }, { $push: { "history": history } });
 
-            const newState = await db.collection('games').findOne({ roomID: id });
+            const newState = await db.collection('parties').findOne({ roomID: id });
             playNamespace.to(id).emit('game state', { game: newState });
         });
 
+        // Skipping with replacing tiles
         socket.on('move swap', async ({ id, letters }) => {
-            const game = await db.collection('games').findOne({ roomID: id });
-            if (game) {
+            const party = await db.collection('parties').findOne({ roomID: id });
+            if (party) {
 
-                const history = {
-                    player: socket.login,
-                    timestamp: new Date(),
-                    type: 'swap',
-                    letters: letters,
-                };
+                // Get player from party
+                const player = party.players.find(p => p.login === socket.login);
 
-                await db.collection('games').updateOne({ roomID: id }, { $push: { "history": history } });
+                // User letters verification
+                const valid = verificateLetters(player.letters, letters);
 
-                const bag = game.tileBag;
-                const oldLetters = game.players.find(player => player.login = socket.login).letters;
-                await letters.map(letter => {
-                    const index = oldLetters.findIndex(item => item.letter === letter.letter);
-                    if (index !== -1) {
-                        oldLetters.splice(index, 1);
-                        bag.map(tile => tile.letter === letter.letter ? tile.count++ : tile.count);
-                    }
-                });
+                if (valid) {
 
-                const newLetters = getLetters(letters.length, bag);
-                const playerLetters = oldLetters.concat(newLetters);
+                    // Update party history
+                    const history = {
+                        player: socket.login,
+                        timestamp: new Date(),
+                        type: 'swap',
+                        letters: letters,
+                    };
+                    await db.collection('parties').updateOne({ roomID: id }, { $push: { "history": history } });
 
-                await db.collection('games').updateOne({ roomID: id }, { $set: { "tileBag": bag } });
-                await db.collection('games').updateOne({ roomID: id, "players.login": socket.login }, { $set: { "players.$.letters": playerLetters } });
+                    // Return letters to the bag
+                    await letters.map(letter => {
+                        party.bag.map(tile => tile.letter === letter.letter ? tile.count++ : tile.count);
+                    })
 
-                // Passing the move to the next player
-                await nextPlayer(id);
+                    // Get new letters for the player
+                    const newLetters = getLetters(MAX_LETTERS_COUNT - player.letters.length, party.bag);
+                    player.letters = player.letters.concat(newLetters);
 
-                const newState = await db.collection('games').findOne({ roomID: id });
+                    // Making changes to the state of the party
+                    await db.collection('parties').updateOne({ roomID: id }, { $set: { "bag": party.bag } });
+                    await db.collection('parties').updateOne({ roomID: id, "players.login": socket.login }, { $set: { "players.$.letters": player.letters } });
+
+                    // Passing the move to the next player
+                    await nextPlayer(id);
+                }
+
+                const newState = await db.collection('parties').findOne({ roomID: id });
                 playNamespace.to(id).emit('game state', { game: newState });
             }
         });
+
+        // Challendge
+
     });
 }
 
-function getLetters(count, bag) {
+// Getting letters of a given amount from the bag
+export function getLetters(count, bag) {
     let letters = [];
     let availableLetters = bag.filter(letter => letter.count > 0);
     for (let i = 0; i < count; i++) {
@@ -162,15 +168,16 @@ function getLetters(count, bag) {
     return letters;
 }
 
+// Selection of the player who moves next
 async function nextPlayer(roomID) {
-    const game = await db.collection('games').findOne({ roomID: roomID });
+    const game = await db.collection('parties').findOne({ roomID: roomID });
     if (game) {
         const players = game.players;
 
         const firstPlayer = players.shift();
         players.push(firstPlayer)
 
-        await db.collection('games').updateOne(
+        await db.collection('parties').updateOne(
             { roomID: roomID },
             {
                 $set: {
@@ -178,5 +185,48 @@ async function nextPlayer(roomID) {
                 }
             }
         );
+    }
+}
+
+// Verificate user letters
+function verificateLetters(serverLetters, clientLetters) {
+    for (const cl of clientLetters) {
+        const index = serverLetters.findIndex(sl => sl.letter === cl.letter && sl.value === cl.value)
+        if (index !== -1) {
+            serverLetters.splice(index, 1);
+        } else {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Player time tracking
+async function timerTick(roomID, playNamespace) {
+    const party = await db.collection('parties').findOne({ roomID: roomID });
+    if (party) {
+        const player = party.players[0];
+        if (player.timeLeft > 0) {
+
+            // Decrease player time
+            await db.collection('parties').updateOne(
+                { roomID: roomID },
+                { $inc: { 'players.0.timeLeft': -1 } }
+            );
+        }
+
+        // Time is up
+        else {
+            //playNamespace.to(roomID).emit('time up');
+        }
+        playNamespace.to(roomID).emit('timer tick', { login: player.login, timeLeft: Math.max(player.timeLeft - 1, 0) });
+    }
+}
+
+// Check active party for player
+async function checkActiveParty(login) {
+    const party = await db.collection('parties').findOne({ players: { $elemMatch: { login: login } } })
+    if (party) {
+        return party;
     }
 }
