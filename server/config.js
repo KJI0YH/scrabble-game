@@ -21,4 +21,6 @@ export const config = {
 
     DB_URL: getDefault(process.env.DB_URL, 'mongodb://127.0.0.1:27017/'),
     DB_NAME: getDefault(process.env.DB_NAME, 'scrabble_db'),
+
+    YANDEX_DICTIONARY_API_KEY: getDefault(process.env.YANDEX_DICTIONARY_API_KEY, '<your yandex dictoinary API key>')
 };
