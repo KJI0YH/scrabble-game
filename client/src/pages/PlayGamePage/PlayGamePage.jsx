@@ -152,27 +152,26 @@ function PlayGamePage() {
 
     const handleSubmit = () => {
         if (canMove && newLetters.length > 0) {
-            console.log(newLetters)
-            playGameSocket.emit('move submit', { id: game.roomID, letters: newLetters });
+            playGameSocket.emit('move submit', { id: game._id, letters: newLetters });
         }
     }
 
     const handleSkip = () => {
         if (canMove) {
-            playGameSocket.emit('move skip', { id: game.roomID });
+            playGameSocket.emit('move skip', { id: game._id });
             setShowSkipModal(false);
         }
     }
 
     const handleSwap = (letters) => {
         if (canMove) {
-            playGameSocket.emit('move swap', { id: game.roomID, letters: letters });
+            playGameSocket.emit('move swap', { id: game._id, letters: letters });
             setShowSwapModal(false);
         }
     }
 
     const handleLeave = () => {
-        playGameSocket.emit('leave party', { id: game.roomID });
+        playGameSocket.emit('leave party', { id: game._id });
         setShowLeaveModal(false);
         navigate('/', { replace: true });
     }

@@ -73,7 +73,6 @@ export async function createParty(id) {
 
     // Create party object
     const party = {
-        roomID: id,
         lang: bag.lang,
         players: [],
         history: [],

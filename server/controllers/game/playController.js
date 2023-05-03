@@ -26,21 +26,25 @@ export default function playController(playNamespace) {
         // Check active party for player
         const activeParty = await checkActiveParty(socket.login);
         if (activeParty) {
-            const roomID = activeParty.roomID;
-            socket.join(roomID);
+            const partyID = activeParty._id.toString();
+            socket.join(partyID);
             socket.emit('game state', { game: activeParty });
 
             // Add game timer
-            if (!roomTimers[roomID]) {
-                roomTimers[roomID] = setInterval(async => {
-                    timerTick(roomID, playNamespace)
+            if (!roomTimers[partyID]) {
+                roomTimers[partyID] = setInterval(async => {
+                    timerTick(partyID, playNamespace)
                 }, 1000);
             }
+        }
+        else {
+            return socket.disconnect();
         }
 
         // Standart move, submit tiles, scoring and get new letters
         socket.on('move submit', async ({ id, letters }) => {
-            const party = await db.collection('parties').findOne({ roomID: id });
+            const partyID = new ObjectId(id)
+            const party = await db.collection('parties').findOne({ _id: partyID });
             if (party) {
 
                 // Get player from party
@@ -70,14 +74,14 @@ export default function playController(playNamespace) {
                     player.letters = player.letters.concat(newLetters);
 
                     // Making changes to the state of the party
-                    await db.collection('parties').updateOne({ roomID: id }, {
+                    await db.collection('parties').updateOne({ _id: partyID }, {
                         $set: { "bag": party.bag },
                         $push: {
                             "board.cells": { $each: letters },
                             "history": history
                         },
                     });
-                    await db.collection('parties').updateOne({ roomID: id, "players.login": socket.login }, {
+                    await db.collection('parties').updateOne({ _id: partyID, "players.login": socket.login }, {
                         $set: { "players.$.letters": player.letters },
                         $inc: { "players.$.score": score }
                     });
@@ -86,13 +90,14 @@ export default function playController(playNamespace) {
                     await nextPlayer(id);
                 }
 
-                const newState = await db.collection('parties').findOne({ roomID: id });
+                const newState = await db.collection('parties').findOne({ _id: partyID });
                 playNamespace.to(id).emit('game state', { game: newState });
             }
         });
 
         // Skipping witout replacing tiles
         socket.on('move skip', async ({ id }) => {
+            const partyID = new ObjectId(id);
             await nextPlayer(id);
 
             const history = {
@@ -101,15 +106,16 @@ export default function playController(playNamespace) {
                 type: 'skip',
             };
 
-            await db.collection('parties').updateOne({ roomID: id }, { $push: { "history": history } });
+            await db.collection('parties').updateOne({ _id: partyID }, { $push: { "history": history } });
 
-            const newState = await db.collection('parties').findOne({ roomID: id });
+            const newState = await db.collection('parties').findOne({ _id: partyID });
             playNamespace.to(id).emit('game state', { game: newState });
         });
 
         // Skipping with replacing tiles
         socket.on('move swap', async ({ id, letters }) => {
-            const party = await db.collection('parties').findOne({ roomID: id });
+            const partyID = new ObjectId(id);
+            const party = await db.collection('parties').findOne({ _id: partyID });
             if (party) {
 
                 // Get player from party
@@ -127,7 +133,7 @@ export default function playController(playNamespace) {
                         type: 'swap',
                         letters: letters,
                     };
-                    await db.collection('parties').updateOne({ roomID: id }, { $push: { "history": history } });
+                    await db.collection('parties').updateOne({ _id: partyID }, { $push: { "history": history } });
 
                     // Return letters to the bag
                     await returnLetters(letters, party.bag);
@@ -137,14 +143,14 @@ export default function playController(playNamespace) {
                     player.letters = player.letters.concat(newLetters);
 
                     // Making changes to the state of the party
-                    await db.collection('parties').updateOne({ roomID: id }, { $set: { "bag": party.bag } });
-                    await db.collection('parties').updateOne({ roomID: id, "players.login": socket.login }, { $set: { "players.$.letters": player.letters } });
+                    await db.collection('parties').updateOne({ _id: partyID }, { $set: { "bag": party.bag } });
+                    await db.collection('parties').updateOne({ _id: partyID, "players.login": socket.login }, { $set: { "players.$.letters": player.letters } });
 
                     // Passing the move to the next player
                     await nextPlayer(id);
                 }
 
-                const newState = await db.collection('parties').findOne({ roomID: id });
+                const newState = await db.collection('parties').findOne({ _id: partyID });
                 playNamespace.to(id).emit('game state', { game: newState });
             }
         });
@@ -153,7 +159,8 @@ export default function playController(playNamespace) {
 
         // Leave from party
         socket.on('leave party', async ({ id }) => {
-            const party = await db.collection('parties').findOne({ roomID: id });
+            const partyID = new ObjectId(id);
+            const party = await db.collection('parties').findOne({ _id: partyID });
             if (party) {
 
                 // Get player from party
@@ -171,10 +178,10 @@ export default function playController(playNamespace) {
                 // Last player leaves
                 if (party.players.length === 1) {
                     // End of the game
-                    await db.collection('parties').deleteOne({ roomID: id });
+                    await db.collection('parties').deleteOne({ _id: partyID });
 
                 } else {
-                    await db.collection('parties').updateOne({ roomID: id }, {
+                    await db.collection('parties').updateOne({ _id: partyID }, {
                         $pull: { "players": { "login": socket.login } },
                         $push: { "history": history },
                         $set: { "bag": party.bag },
@@ -182,7 +189,7 @@ export default function playController(playNamespace) {
                 }
             }
 
-            const newState = await db.collection('parties').findOne({ roomID: id });
+            const newState = await db.collection('parties').findOne({ _id: partyID });
             playNamespace.to(id).emit('game state', { game: newState });
         });
 
@@ -220,22 +227,18 @@ async function returnLetters(letters, bag) {
 }
 
 // Selection of the player who moves next
-async function nextPlayer(roomID) {
-    const game = await db.collection('parties').findOne({ roomID: roomID });
-    if (game) {
-        const players = game.players;
+async function nextPlayer(id) {
+    const partyID = new ObjectId(id);
+    const party = await db.collection('parties').findOne({ _id: partyID });
+    if (party) {
+        const players = party.players;
 
         const firstPlayer = players.shift();
         players.push(firstPlayer)
 
-        await db.collection('parties').updateOne(
-            { roomID: roomID },
-            {
-                $set: {
-                    "players": players
-                }
-            }
-        );
+        await db.collection('parties').updateOne({ _id: partyID }, {
+            $set: { "players": players }
+        });
     }
 }
 
@@ -253,24 +256,24 @@ function verificateLetters(serverLetters, clientLetters) {
 }
 
 // Player time tracking
-async function timerTick(roomID, playNamespace) {
-    const party = await db.collection('parties').findOne({ roomID: roomID });
+async function timerTick(id, playNamespace) {
+    const partyID = new ObjectId(id);
+    const party = await db.collection('parties').findOne({ _id: partyID });
     if (party) {
         const player = party.players[0];
         if (player.timeLeft > 0) {
 
             // Decrease player time
-            await db.collection('parties').updateOne(
-                { roomID: roomID },
-                { $inc: { 'players.0.timeLeft': -1 } }
-            );
+            await db.collection('parties').updateOne({ _id: partyID }, {
+                $inc: { 'players.0.timeLeft': -1 }
+            });
         }
 
         // Time is up
         else {
             //playNamespace.to(roomID).emit('time up');
         }
-        playNamespace.to(roomID).emit('timer tick', { login: player.login, timeLeft: Math.max(player.timeLeft - 1, 0) });
+        playNamespace.to(id).emit('timer tick', { login: player.login, timeLeft: Math.max(player.timeLeft - 1, 0) });
     }
 }
 
