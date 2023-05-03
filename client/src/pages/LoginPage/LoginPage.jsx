@@ -20,7 +20,7 @@ function LoginPage(props) {
         event.preventDefault();
 
         try {
-            const response = await axios.post('http://localhost:8080/api/auth/login', { login: login, password: password });
+            const response = await axios.post('http://192.168.100.2:8080/api/auth/login', { login: login, password: password });
             localStorage.setItem('token', response.data.token);
             onLogin();
             navigate('/', { replace: true });

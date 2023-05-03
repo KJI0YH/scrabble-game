@@ -1,6 +1,6 @@
 import { io } from 'socket.io-client';
 
-const serverURL = 'http://localhost:44444';
+const serverURL = 'http://192.168.100.2:44444';
 export const defaultSocket = io(serverURL, { autoConnect: false });
 export const chatSocket = io(serverURL + '/chat', { autoConnect: false });
 export const createGameSocket = io(serverURL + '/game/create', { autoConnect: false });

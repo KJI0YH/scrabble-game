@@ -9,7 +9,7 @@ function getDefault(value, defaultValue) {
 }
 
 const productionHosts = ['*'];
-const devHosts = ['http://localhost:3000'];
+const devHosts = ['http://localhost:3000', 'http://192.168.100.2:3000'];
 
 export const config = {
     API_PORT: process.env.API_PORT ? Number.parseInt(process.env.API_PORT, 10) : 8080,

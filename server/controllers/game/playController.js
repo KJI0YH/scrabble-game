@@ -2,7 +2,9 @@ import db from "../../database/db.js";
 import { authenticateToken } from "../../middlewares/auth.js";
 import { validateWord } from "../../utils/wordsDictionary.js";
 import { ObjectId } from "mongodb";
+
 export const MAX_LETTERS_COUNT = 7;
+const BONUS = 50;
 
 const roomTimers = [];
 
@@ -49,30 +51,37 @@ export default function playController(playNamespace) {
 
                 if (valid) {
 
-                    // Check validity of postions
+                    // Check validity of positions
+                    // Check initial tile
 
                     // Scoring
-
-                    // Add players cells to board
-                    await db.collection('parties').updateOne({ roomID: id }, { $push: { "board.cells": { $each: letters } } });
+                    const score = getScore(letters, party.board.premium);
 
                     // Update party history
                     const history = {
                         player: socket.login,
                         timestamp: new Date(),
                         type: 'submit',
-                        points: 0,
-                        words: [],
+                        score: score,
+                        letters: letters,
                     };
-                    await db.collection('parties').updateOne({ roomID: id }, { $push: { "history": history } });
 
                     // Issuing new letters to the player
                     const newLetters = getLetters(MAX_LETTERS_COUNT - player.letters.length, party.bag);
                     player.letters = player.letters.concat(newLetters);
 
                     // Making changes to the state of the party
-                    await db.collection('parties').updateOne({ roomID: id }, { $set: { "bag": party.bag } });
-                    await db.collection('parties').updateOne({ roomID: id, "players.login": socket.login }, { $set: { "players.$.letters": player.letters } });
+                    await db.collection('parties').updateOne({ roomID: id }, {
+                        $set: { "bag": party.bag },
+                        $push: {
+                            "board.cells": { $each: letters },
+                            "history": history
+                        },
+                    });
+                    await db.collection('parties').updateOne({ roomID: id, "players.login": socket.login }, {
+                        $set: { "players.$.letters": player.letters },
+                        $inc: { "players.$.score": score }
+                    });
 
                     // Passing the move to the next player
                     await nextPlayer(id);
@@ -143,7 +152,7 @@ export default function playController(playNamespace) {
             }
         });
 
-        // Challendge
+        // Challenge
 
     });
 }
@@ -229,4 +238,40 @@ async function checkActiveParty(login) {
     if (party) {
         return party;
     }
+}
+
+// Player score calculation 
+function getScore(tiles, premium) {
+    let wordMultiplier = 1;
+    let letterMultiplier = 1;
+    let score = 0;
+
+    for (const tile of tiles) {
+        const bonus = premium.find(p => p.row === tile.row && p.col === tile.col);
+        if (bonus) {
+            switch (bonus.type) {
+                case "triple word":
+                    wordMultiplier *= 3;
+                    break;
+                case "double word":
+                    wordMultiplier *= 2;
+                    break;
+                case "triple letter":
+                    letterMultiplier = 3;
+                    break;
+                case "double letter":
+                    letterMultiplier = 2
+                    break;
+            }
+        }
+        score += tile.cell.value * letterMultiplier;
+        letterMultiplier = 1;
+    }
+    score *= wordMultiplier;
+
+    if (tiles.length === MAX_LETTERS_COUNT) {
+        score += BONUS;
+    }
+
+    return score;
 }
