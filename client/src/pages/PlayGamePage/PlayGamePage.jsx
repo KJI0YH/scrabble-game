@@ -9,6 +9,7 @@ import TileBag from "../../components/TileBag/TileBag";
 import SkipModal from "../../components/SkipModal/SkipModal";
 import SwapModal from "../../components/SwapModal/SwapModal";
 import LeaveModal from '../../components/LeaveModal/LeaveModal';
+import Timer from '../../components/Timer/Timer';
 
 const defaultInput = {
     row: -1,
@@ -29,6 +30,9 @@ function PlayGamePage() {
     const [showSkipModal, setShowSkipModal] = useState(false);
     const [showSwapModal, setShowSwapModal] = useState(false);
     const [showLeaveModal, setShowLeaveModal] = useState(false);
+
+    const [challenge, setChallenge] = useState(null);
+    const [resolveLetters, setResolveLetters] = useState([]);
 
     useEffect(() => {
         if (!playGameSocket.connected) {
@@ -61,6 +65,8 @@ function PlayGamePage() {
             } else {
                 setCanMove(false);
             }
+            setChallenge(null);
+            setResolveLetters([]);
 
             setPlayers(prevPlayers => {
                 const updatedPlayers = prevPlayers.map(player => {
@@ -76,9 +82,30 @@ function PlayGamePage() {
             });
         });
 
+        playGameSocket.on('challenge tick', ({ player, initiator, score, letters, timeLeft }) => {
+            if (player === playGameSocket.login) {
+                setChallenge({
+                    player: player,
+                    initiator: initiator,
+                    score: score,
+                    letters: letters,
+                    timeLeft: timeLeft,
+                });
+                setResolveLetters(prev => {
+                    letters.map(letter => {
+                        if (!prev.find(p => p.col === letter.col && p.row === letter.row)) {
+                            prev.push(letter);
+                        }
+                    });
+                    return prev;
+                });
+            }
+        });
+
         return () => {
             playGameSocket.off('game state');
             playGameSocket.off('timer tick');
+            playGameSocket.off('challenge tick');
         }
     }, []);
 
@@ -150,6 +177,29 @@ function PlayGamePage() {
         }
     };
 
+    const handleChallengeSelect = (event) => {
+        if (challenge) {
+            const cell = event.target.closest('.board-cell');
+            if (cell) {
+                const row = parseInt(cell.dataset.row);
+                const col = parseInt(cell.dataset.col);
+                const letter = oldLetters && oldLetters.find(letter => letter.row === row && letter.col === col)
+                if (letter) {
+                    setResolveLetters(prev => [
+                        ...prev,
+                        letter,
+                    ]);
+                }
+            }
+        }
+    }
+
+    const handleChallengeCancel = () => {
+        if (challenge) {
+            setResolveLetters(challenge.letters);
+        }
+    }
+
     const handleSubmit = () => {
         if (canMove && newLetters.length > 0) {
             playGameSocket.emit('move submit', { id: game._id, letters: newLetters });
@@ -170,6 +220,14 @@ function PlayGamePage() {
         }
     }
 
+    const handleChallengeOpen = () => {
+        playGameSocket.emit('challenge open', { id: game._id });
+    }
+
+    const handleChallengeClose = () => {
+        playGameSocket.emit('challenge close', { id: game._id, letters: resolveLetters });
+    }
+
     const handleLeave = () => {
         playGameSocket.emit('leave party', { id: game._id });
         setShowLeaveModal(false);
@@ -186,19 +244,37 @@ function PlayGamePage() {
                         premium={game.board.premium}
                         oldLetters={oldLetters}
                         newLetters={newLetters}
+                        resolveLetters={resolveLetters}
                         onClick={handleBoardCellClick}
+                        onMouseDown={handleChallengeSelect}
                         input={input}
                     />
 
-                    <ActiveLetters
-                        letters={playerLetters}
-                        onClick={handleActiveLetterClick}
-                    />
+                    {challenge ? (
+                        <>
+                            <Timer
+                                caption={"Challenge time left: "}
+                                seconds={challenge.timeLeft}
+                            />
+                            <button onClick={handleChallengeClose}>Resolve challenge</button>
+                            <button onClick={handleChallengeCancel}>Cancel selection</button>
+                        </>
+                    ) : (
+                        <>
+                            < ActiveLetters
+                                letters={playerLetters}
+                                onClick={handleActiveLetterClick}
+                            />
 
-                    <button onClick={handleSubmit}>Submit</button>
-                    <button onClick={() => { canMove && setShowSkipModal(true) }}>Skip</button>
-                    <button onClick={() => { canMove && setShowSwapModal(true) }}>Swap</button>
-                    <button onClick={() => setShowLeaveModal(true)}>Leave</button>
+                            <button onClick={handleSubmit}>Submit</button>
+                            <button onClick={() => { canMove && setShowSkipModal(true) }}>Skip</button>
+                            <button onClick={() => { canMove && setShowSwapModal(true) }}>Swap</button>
+                            <button onClick={handleChallengeOpen}>Challenge</button>
+                            <button onClick={() => setShowLeaveModal(true)}>Leave</button>
+                        </>
+                    )}
+
+
 
                     {players.map(player => (
                         <Player
@@ -229,8 +305,9 @@ function PlayGamePage() {
                         onCancel={() => setShowLeaveModal(false)}
                     />
                 </>
-            )}
-        </div>
+            )
+            }
+        </div >
     )
 }
 

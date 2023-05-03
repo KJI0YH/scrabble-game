@@ -6,13 +6,16 @@ const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 function Board(props) {
     const {
         rowCount, colCount,
-        premium, oldLetters, newLetters,
-        onClick, input
+        premium, oldLetters, newLetters, resolveLetters,
+        onClick, onMouseDown,
+        input
     } = props;
 
     let letters = [];
+    if (resolveLetters)
+        letters = letters.concat(resolveLetters.map(letter => { return { ...letter, type: "resolve letter" } }));
     if (oldLetters)
-        letters = letters.concat(oldLetters.map(letter => { return { ...letter, type: "old letter" } }));
+        letters = oldLetters && letters.concat(oldLetters.map(letter => { return { ...letter, type: "old letter" } }));
 
     if (newLetters)
         letters = newLetters && letters.concat(newLetters.map(letter => { return { ...letter, type: "new letter" } }));
@@ -25,6 +28,7 @@ function Board(props) {
         "initial": '#E5B5B3',
         "old letter": '#FFFFFF',
         "new letter": '#FFFF00',
+        "resolve letter": '#FFFF00',
         "default": '#FFFFFF',
     }
 
@@ -90,7 +94,14 @@ function Board(props) {
                     )
                 }
                 cells.push(
-                    <div key={cellIndex} data-row={row} data-col={col} className='board-cell' onClick={onClick}>
+                    <div
+                        key={cellIndex}
+                        data-row={row}
+                        data-col={col}
+                        className='board-cell'
+                        onClick={onClick}
+                        onMouseDown={onMouseDown}
+                    >
                         {cell}
                     </div>
 

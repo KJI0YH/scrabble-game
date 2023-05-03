@@ -5,6 +5,7 @@ import { ObjectId } from "mongodb";
 
 export const MAX_LETTERS_COUNT = 7;
 const BONUS = 50;
+const SECONDS_FOR_CHALLENGE = 60;
 
 const roomTimers = [];
 
@@ -43,6 +44,13 @@ export default function playController(playNamespace) {
 
         // Standart move, submit tiles, scoring and get new letters
         socket.on('move submit', async ({ id, letters }) => {
+
+            // Check that player can move
+            const nowMove = await nowPlayer(id);
+            if (!(nowMove && nowMove.login == socket.login)) {
+                return;
+            }
+
             const partyID = new ObjectId(id)
             const party = await db.collection('parties').findOne({ _id: partyID });
             if (party) {
@@ -51,10 +59,10 @@ export default function playController(playNamespace) {
                 const player = party.players.find(p => p.login === socket.login);
 
                 // User letters verification
-                const validLetters = verificateLetters(player.letters, letters.map(letter => letter.cell));
+                const validLetters = validateLetters(player.letters, letters.map(letter => letter.cell));
 
                 // Check validity of positions
-                const validPosition = validatePosition(letters, party.board);
+                const validPosition = validateSubmit(letters, party.board);
 
                 if (validLetters && validPosition) {
                     // Scoring
@@ -97,6 +105,13 @@ export default function playController(playNamespace) {
 
         // Skipping witout replacing tiles
         socket.on('move skip', async ({ id }) => {
+
+            // Check that player can move
+            const nowMove = await nowPlayer(id);
+            if (!(nowMove && nowMove.login == socket.login)) {
+                return;
+            }
+
             const partyID = new ObjectId(id);
             await nextPlayer(id);
 
@@ -114,6 +129,13 @@ export default function playController(playNamespace) {
 
         // Skipping with replacing tiles
         socket.on('move swap', async ({ id, letters }) => {
+
+            // Check that player can move
+            const nowMove = await nowPlayer(id);
+            if (!(nowMove && nowMove.login == socket.login)) {
+                return;
+            }
+
             const partyID = new ObjectId(id);
             const party = await db.collection('parties').findOne({ _id: partyID });
             if (party) {
@@ -122,7 +144,7 @@ export default function playController(playNamespace) {
                 const player = party.players.find(p => p.login === socket.login);
 
                 // User letters verification
-                const valid = verificateLetters(player.letters, letters);
+                const valid = validateLetters(player.letters, letters);
 
                 if (valid) {
 
@@ -155,7 +177,50 @@ export default function playController(playNamespace) {
             }
         });
 
-        // Challenge
+        // Opennig challenge for the resolution of the word
+        socket.on('challenge open', async ({ id }) => {
+            const partyID = new ObjectId(id);
+            const party = await db.collection('parties').findOne({ _id: partyID });
+            if (party && party.status !== "challenge") {
+                if (party.history.length === 0) {
+                    return;
+                }
+
+                const lastSubmit = party.history.reduce((older, curr) => {
+                    return curr.type === "submit" && curr.timestamp > older.timestamp ? curr : older;
+                });
+
+                if (!lastSubmit) {
+                    return;
+                }
+
+                if (lastSubmit.player === socket.login) {
+                    return;
+                }
+
+                const challenge = {
+                    player: lastSubmit.player,
+                    initiator: socket.login,
+                    score: lastSubmit.score,
+                    letters: lastSubmit.letters,
+                    timeLeft: SECONDS_FOR_CHALLENGE,
+                }
+
+                await db.collection('parties').updateOne({ _id: partyID }, {
+                    $set: {
+                        "status": "challenge",
+                        "challenge": challenge,
+                    }
+                });
+            }
+        });
+
+        // Closing  challenge for the resolution of the word
+        socket.on('challenge close', async ({ id, letters }) => {
+            await closeChallenge(id, letters);
+            const newState = await db.collection('parties').findOne({ _id: new ObjectId(id) });
+            playNamespace.to(id).emit('game state', { game: newState });
+        });
 
         // Leave from party
         socket.on('leave party', async ({ id }) => {
@@ -233,8 +298,11 @@ async function nextPlayer(id) {
     if (party) {
         const players = party.players;
 
-        const firstPlayer = players.shift();
-        players.push(firstPlayer)
+        do {
+            const popPlayer = players.shift();
+            popPlayer.skip = false;
+            players.push(popPlayer);
+        } while (players[0].skip);
 
         await db.collection('parties').updateOne({ _id: partyID }, {
             $set: { "players": players }
@@ -242,8 +310,31 @@ async function nextPlayer(id) {
     }
 }
 
-// Verificate user letters
-function verificateLetters(serverLetters, clientLetters) {
+// Selecten of the player who move now
+async function nowPlayer(id) {
+    const partyID = new ObjectId(id);
+    const party = await db.collection('parties').findOne({ _id: partyID });
+    if (party && party.status === "running" && party.players.length > 0) {
+        return party.players[0];
+    }
+    else {
+        return null;
+    }
+}
+
+// Penalizing a player by skipping a move
+async function skipPlayer(id, login) {
+    const partyID = new ObjectId(id);
+    const party = await db.collection('parties').findOne({ _id: partyID });
+    if (party && party.player.find(p => p.login === login)) {
+        await db.collection('parties').updateOne({ _id: partyID, "players.login": login }, {
+            $set: { "players.$.skip": true }
+        });
+    }
+}
+
+// Validate user letters
+function validateLetters(serverLetters, clientLetters) {
     for (const cl of clientLetters) {
         const index = serverLetters.findIndex(sl => sl.letter === cl.letter && sl.value === cl.value)
         if (index !== -1) {
@@ -260,20 +351,50 @@ async function timerTick(id, playNamespace) {
     const partyID = new ObjectId(id);
     const party = await db.collection('parties').findOne({ _id: partyID });
     if (party) {
-        const player = party.players[0];
-        if (player.timeLeft > 0) {
 
-            // Decrease player time
-            await db.collection('parties').updateOne({ _id: partyID }, {
-                $inc: { 'players.0.timeLeft': -1 }
-            });
-        }
+        switch (party.status) {
+            case "running":
+                let player = party.players[0];
+                if (player.timeLeft > 0 && !player.skip) {
 
-        // Time is up
-        else {
-            //playNamespace.to(roomID).emit('time up');
+                    // Decrease player time
+                    await db.collection('parties').updateOne({ _id: partyID }, {
+                        $inc: { 'players.0.timeLeft': -1 }
+                    });
+                } else {
+                    player = nextPlayer(id);
+                }
+                playNamespace.to(id).emit('timer tick', {
+                    login: player.login,
+                    timeLeft: Math.max(player.timeLeft - 1, 0)
+                });
+                break;
+            case "challenge":
+                const challenge = party.challenge;
+
+                if (challenge.timeLeft > 0) {
+
+                    // Decrease challenge time
+                    await db.collection('parties').updateOne({ _id: partyID }, {
+                        $inc: { 'challenge.timeLeft': -1 }
+                    });
+                } else {
+
+                    // Close challenge when time expired
+                    await closeChallenge(id, []);
+                    const newState = await db.collection('parties').findOne({ _id: partyID });
+                    return playNamespace.to(id).emit('game state', { game: newState });
+                }
+
+                playNamespace.to(id).emit('challenge tick', {
+                    player: challenge.player,
+                    initiator: challenge.initiator,
+                    timeLeft: challenge.timeLeft,
+                    letters: challenge.letters,
+                    score: challenge.score,
+                });
+                break;
         }
-        playNamespace.to(id).emit('timer tick', { login: player.login, timeLeft: Math.max(player.timeLeft - 1, 0) });
     }
 }
 
@@ -321,8 +442,8 @@ function getScore(tiles, premium) {
     return score;
 }
 
-// Validate tiles position
-function validatePosition(tiles, board) {
+// Validate tiles from submit
+function validateSubmit(tiles, board) {
     const isSameRow = tiles.every(t => t.row === tiles[0].row);
     const isSameCol = tiles.every(t => t.col === tiles[0].col);
 
@@ -368,8 +489,6 @@ function validatePosition(tiles, board) {
         if (maxCol < board.size && board.cells.find(cell => cell.row === row && cell.col === maxCol + 1)) {
             return true;
         }
-
-        return false;
     }
 
     // Check the intersection with other tiles on one col
@@ -398,5 +517,107 @@ function validatePosition(tiles, board) {
         }
 
         return false;
+    }
+    return false;
+}
+
+// Validate tiles from challenge
+async function validateChallenge(tiles, party) {
+
+    const used = party.challenge.letters.every(old => tiles.some(tile =>
+        old.row === tile.row &&
+        old.col === tile.col &&
+        old.cell.letter === tile.cell.letter &&
+        old.cell.value === tile.cell.value));
+
+    if (!used) {
+        return false;
+    }
+
+    // Check that a word overlaps with another word
+    if (party.board.cells.length !== 0 && party.challenge.letters.length === tiles.length) {
+        return false;
+    }
+
+    const isSameRow = tiles.every(t => t.row === tiles[0].row);
+    const isSameCol = tiles.every(t => t.col === tiles[0].col);
+
+    // Tiles are in different lines
+    if (!(isSameRow || isSameCol)) {
+        return false;
+    }
+
+    if (isSameRow) {
+        tiles.sort((a, b) => a.col - b.col);
+
+        let prevCol = tiles[0].col;
+        for (let i = 1; i < tiles.length; i++) {
+            if (++prevCol !== tiles[i].col) {
+                return false;
+            }
+        }
+    }
+
+    if (isSameCol) {
+        tiles.sort((a, b) => a.row - b.row);
+
+        let prevRow = tiles[0].row;
+        for (let i = 1; i < tiles.length; i++) {
+            if (++prevRow !== tiles[i].row) {
+                return false;
+            }
+        }
+    }
+
+    // Validate word
+    const word = tiles.map(tile => tile.cell.letter).join("");
+    const result = await validateWord(word, party.lang);
+
+    console.log(result);
+
+    if (result) {
+        return true;
+    }
+    return false;
+}
+
+async function closeChallenge(id, letters) {
+    const partyID = new ObjectId(id);
+    const party = await db.collection('parties').findOne({ _id: partyID });
+    if (party && party.status === "challenge") {
+        const player = party.players.find(p => p.login === party.challenge.player);
+        const initiator = party.players.find(p => p.login === party.challenge.initiator);
+
+        const validChallenge = await validateChallenge(letters, party);
+        if (validChallenge) {
+
+            // Initiator penalty
+            initiator.skip = true;
+        } else {
+
+            // Player penalty
+            player.score -= party.challenge.score;
+            player.skip = true;
+
+            party.board.cells = party.board.cells.filter(c => !party.challenge.letters.some(l =>
+                l.row === c.row &&
+                l.col === c.col &&
+                l.cell.letter === c.cell.letter &&
+                l.cell.letter === c.cell.letter));
+            await returnLetters(party.challenge.letters.map(letter => letter.cell), party.bag);
+        }
+
+        // Update party state
+        await db.collection('parties').updateOne({ _id: partyID }, {
+            $set: {
+                "status": "running",
+                "bag": party.bag,
+                "players": party.players,
+                "board.cells": party.board.cells,
+            },
+            $unset: {
+                "challenge": "",
+            }
+        });
     }
 }

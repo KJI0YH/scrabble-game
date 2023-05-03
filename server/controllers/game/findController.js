@@ -20,6 +20,8 @@ export default function findController(findNamespace) {
         if (existWait) {
             socket.emit('join success');
         }
+        const activeRooms = await getActiveRooms();
+        socket.emit('active rooms', { activeRooms: activeRooms });
 
         socket.on('active rooms', async () => {
             const activeRooms = await getActiveRooms();

@@ -14,12 +14,12 @@ function FindGamePage() {
             if (token) {
                 findGameSocket.auth = { token };
                 findGameSocket.connect();
+                findGameSocket.emit('active rooms');
             } else {
                 navigate('/login', { replace: true });
             }
         }
 
-        findGameSocket.emit('active rooms');
 
         findGameSocket.on('active rooms', ({ activeRooms }) => {
             setRooms(activeRooms);

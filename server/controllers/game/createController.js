@@ -74,6 +74,7 @@ export async function createParty(id) {
     // Create party object
     const party = {
         lang: bag.lang,
+        status: "running",
         players: [],
         history: [],
         bag: bag.letters,
@@ -93,6 +94,7 @@ export async function createParty(id) {
                 login: user.login,
                 score: 0,
                 timeLeft: room.minutesPerPlayer * 60,
+                skip: false,
 
                 // Get start letters for player
                 letters: getLetters(MAX_LETTERS_COUNT, party.bag),
