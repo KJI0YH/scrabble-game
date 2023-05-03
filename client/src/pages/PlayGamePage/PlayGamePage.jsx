@@ -8,6 +8,7 @@ import Player from "../../components/Player/Player";
 import TileBag from "../../components/TileBag/TileBag";
 import SkipModal from "../../components/SkipModal/SkipModal";
 import SwapModal from "../../components/SwapModal/SwapModal";
+import LeaveModal from '../../components/LeaveModal/LeaveModal';
 
 const defaultInput = {
     row: -1,
@@ -27,6 +28,59 @@ function PlayGamePage() {
 
     const [showSkipModal, setShowSkipModal] = useState(false);
     const [showSwapModal, setShowSwapModal] = useState(false);
+    const [showLeaveModal, setShowLeaveModal] = useState(false);
+
+    useEffect(() => {
+        if (!playGameSocket.connected) {
+            const token = localStorage.getItem('token');
+            if (token) {
+                playGameSocket.auth = { token };
+                playGameSocket.connect();
+            } else {
+                navigate('/login', { replace: true });
+            }
+        }
+
+        playGameSocket.on('game state', ({ game }) => {
+            setGame(game);
+            setPlayerLetters(game.players.find(player => player.login === playGameSocket.login).letters);
+            setPlayers(game.players);
+            setOldLetters(game.board.cells);
+            setNewLetters([]);
+
+            // Set default input
+            setInput(defaultInput);
+
+            // Unselect all tiles
+            document.querySelectorAll('.tile').forEach(tile => tile.classList.remove('selected'));
+        });
+
+        playGameSocket.on('timer tick', ({ login, timeLeft }) => {
+            if (playGameSocket.login === login) {
+                setCanMove(true);
+            } else {
+                setCanMove(false);
+            }
+
+            setPlayers(prevPlayers => {
+                const updatedPlayers = prevPlayers.map(player => {
+                    if (player.login === login) {
+                        return {
+                            ...player,
+                            timeLeft: timeLeft
+                        };
+                    }
+                    return player;
+                });
+                return updatedPlayers;
+            });
+        });
+
+        return () => {
+            playGameSocket.off('game state');
+            playGameSocket.off('timer tick');
+        }
+    }, []);
 
     const handleBoardCellClick = (event) => {
         const cell = event.target.closest('.board-cell');
@@ -117,57 +171,11 @@ function PlayGamePage() {
         }
     }
 
-    useEffect(() => {
-        if (!playGameSocket.connected) {
-            const token = localStorage.getItem('token');
-            if (token) {
-                playGameSocket.auth = { token };
-                playGameSocket.connect();
-            } else {
-                navigate('/login', { replace: true });
-            }
-        }
-
-        playGameSocket.on('game state', ({ game }) => {
-            setGame(game);
-            setPlayerLetters(game.players.find(player => player.login === playGameSocket.login).letters);
-            setPlayers(game.players);
-            setOldLetters(game.board.cells);
-            setNewLetters([]);
-
-            // Set default input
-            setInput(defaultInput);
-
-            // Unselect all tiles
-            document.querySelectorAll('.tile').forEach(tile => tile.classList.remove('selected'));
-        });
-
-        playGameSocket.on('timer tick', ({ login, timeLeft }) => {
-            if (playGameSocket.login === login) {
-                setCanMove(true);
-            } else {
-                setCanMove(false);
-            }
-
-            setPlayers(prevPlayers => {
-                const updatedPlayers = prevPlayers.map(player => {
-                    if (player.login === login) {
-                        return {
-                            ...player,
-                            timeLeft: timeLeft
-                        };
-                    }
-                    return player;
-                });
-                return updatedPlayers;
-            });
-        });
-
-        return () => {
-            playGameSocket.off('game state');
-            playGameSocket.off('timer tick');
-        }
-    }, []);
+    const handleLeave = () => {
+        playGameSocket.emit('leave party', { id: game.roomID });
+        setShowLeaveModal(false);
+        navigate('/', { replace: true });
+    }
 
     return (
         <div>
@@ -191,6 +199,7 @@ function PlayGamePage() {
                     <button onClick={handleSubmit}>Submit</button>
                     <button onClick={() => { canMove && setShowSkipModal(true) }}>Skip</button>
                     <button onClick={() => { canMove && setShowSwapModal(true) }}>Swap</button>
+                    <button onClick={() => setShowLeaveModal(true)}>Leave</button>
 
                     {players.map(player => (
                         <Player
@@ -215,6 +224,11 @@ function PlayGamePage() {
                         onCancel={() => setShowSwapModal(false)}
                     />
 
+                    <LeaveModal
+                        visible={showLeaveModal}
+                        onClick={handleLeave}
+                        onCancel={() => setShowLeaveModal(false)}
+                    />
                 </>
             )}
         </div>

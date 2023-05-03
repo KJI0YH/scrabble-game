@@ -130,9 +130,7 @@ export default function playController(playNamespace) {
                     await db.collection('parties').updateOne({ roomID: id }, { $push: { "history": history } });
 
                     // Return letters to the bag
-                    await letters.map(letter => {
-                        party.bag.map(tile => tile.letter === letter.letter ? tile.count++ : tile.count);
-                    })
+                    await returnLetters(letters, party.bag);
 
                     // Get new letters for the player
                     const newLetters = getLetters(MAX_LETTERS_COUNT - player.letters.length, party.bag);
@@ -152,6 +150,41 @@ export default function playController(playNamespace) {
         });
 
         // Challenge
+
+        // Leave from party
+        socket.on('leave party', async ({ id }) => {
+            const party = await db.collection('parties').findOne({ roomID: id });
+            if (party) {
+
+                // Get player from party
+                const player = party.players.find(p => p.login === socket.login);
+
+                // Return player letters to the bag
+                await returnLetters(player.letters, party.bag);
+
+                const history = {
+                    player: socket.login,
+                    type: 'leave',
+                    timestamp: new Date(),
+                }
+
+                // Last player leaves
+                if (party.players.length === 1) {
+                    // End of the game
+                    await db.collection('parties').deleteOne({ roomID: id });
+
+                } else {
+                    await db.collection('parties').updateOne({ roomID: id }, {
+                        $pull: { "players": { "login": socket.login } },
+                        $push: { "history": history },
+                        $set: { "bag": party.bag },
+                    });
+                }
+            }
+
+            const newState = await db.collection('parties').findOne({ roomID: id });
+            playNamespace.to(id).emit('game state', { game: newState });
+        });
 
     });
 }
@@ -174,6 +207,16 @@ export function getLetters(count, bag) {
         }
     }
     return letters;
+}
+
+// Return letters to the bag
+async function returnLetters(letters, bag) {
+    await letters.map(letter => {
+        const tile = bag.find(tile => tile.letter === letter.letter)
+        if (tile) {
+            tile.count++;
+        }
+    })
 }
 
 // Selection of the player who moves next
