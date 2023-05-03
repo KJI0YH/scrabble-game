@@ -47,13 +47,12 @@ export default function playController(playNamespace) {
                 const player = party.players.find(p => p.login === socket.login);
 
                 // User letters verification
-                const valid = verificateLetters(player.letters, letters.map(letter => letter.cell));
+                const validLetters = verificateLetters(player.letters, letters.map(letter => letter.cell));
 
-                if (valid) {
+                // Check validity of positions
+                const validPosition = validatePosition(letters, party.board);
 
-                    // Check validity of positions
-                    // Check initial tile
-
+                if (validLetters && validPosition) {
                     // Scoring
                     const score = getScore(letters, party.board.premium);
 
@@ -274,4 +273,84 @@ function getScore(tiles, premium) {
     }
 
     return score;
+}
+
+// Validate tiles position
+function validatePosition(tiles, board) {
+    const isSameRow = tiles.every(t => t.row === tiles[0].row);
+    const isSameCol = tiles.every(t => t.col === tiles[0].col);
+
+    // Tiles are in different lines
+    if (!(isSameRow || isSameCol)) {
+        return false;
+    }
+
+    // Check initial position
+    const initialPos = board.premium.find(p => p.type === "initial");
+
+    // Check that initial tile is empty
+    if (!board.cells.find(cell => cell.row === initialPos.row && cell.col === initialPos.col)) {
+
+        // Initial tile must be filled
+        if (tiles.find(tile => tile.row === initialPos.row && tile.col === initialPos.col)) {
+            return true;
+        }
+        return false;
+    }
+
+    // Check the intersection with other tiles on one row
+    if (isSameRow) {
+        const row = tiles[0].row;
+        const minCol = tiles.reduce((min, curr) => {
+            return curr.col < min.col ? curr : min;
+        }).col;
+        const maxCol = tiles.reduce((max, curr) => {
+            return curr.col > max.col ? curr : max;
+        }).col;
+
+        // Check tiles between word
+        if (board.cells.find(cell => cell.row === row && cell.col > minCol && cell.col < maxCol)) {
+            return true;
+        }
+
+        // Check tiles at the start of the word
+        if (minCol > 0 && board.cells.find(cell => cell.row === row && cell.col === minCol - 1)) {
+            return true;
+        }
+
+        // Check tiles at the end of the word
+        if (maxCol < board.size && board.cells.find(cell => cell.row === row && cell.col === maxCol + 1)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    // Check the intersection with other tiles on one col
+    if (isSameCol) {
+        const col = tiles[0].col;
+        const minRow = tiles.reduce((min, curr) => {
+            return curr.row < min.row ? curr : min;
+        }).row;
+        const maxRow = tiles.reduce((max, curr) => {
+            return curr.row > max.row ? curr : max;
+        }).row;
+
+        // Check tiles between word
+        if (board.cells.find(cell => cell.col === col && cell.row > minRow && cell.row < maxRow)) {
+            return true;
+        }
+
+        // Check tiles at the start of the word
+        if (minRow > 0 && board.cells.find(cell => cell.col === col && cell.row === minRow - 1)) {
+            return true;
+        }
+
+        // Check tiles at the end of the word
+        if (maxRow < board.size && board.cells.find(cell => cell.col === col && cell.row === maxRow + 1)) {
+            return true;
+        }
+
+        return false;
+    }
 }
