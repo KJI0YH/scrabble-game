@@ -32,6 +32,7 @@ function PlayGamePage() {
     const [showSwapModal, setShowSwapModal] = useState(false);
     const [showLeaveModal, setShowLeaveModal] = useState(false);
     const [showGameOverModal, setShowGameOverModal] = useState(false);
+    const [endGameRequest, setEndGameRequest] = useState(false);
 
     const [challenge, setChallenge] = useState(null);
     const [resolveLetters, setResolveLetters] = useState([]);
@@ -61,7 +62,7 @@ function PlayGamePage() {
             document.querySelectorAll('.tile').forEach(tile => tile.classList.remove('selected'));
         });
 
-        playGameSocket.on('timer tick', ({ login, timeLeft }) => {
+        playGameSocket.on('timer tick', ({ login, timeLeft, players }) => {
             if (playGameSocket.login === login) {
                 setCanMove(true);
             } else {
@@ -70,18 +71,7 @@ function PlayGamePage() {
             setChallenge(null);
             setResolveLetters([]);
 
-            setPlayers(prevPlayers => {
-                const updatedPlayers = prevPlayers.map(player => {
-                    if (player.login === login) {
-                        return {
-                            ...player,
-                            timeLeft: timeLeft
-                        };
-                    }
-                    return player;
-                });
-                return updatedPlayers;
-            });
+            setPlayers(players);
         });
 
         playGameSocket.on('challenge tick', ({ player, initiator, score, letters, timeLeft }) => {
@@ -248,6 +238,16 @@ function PlayGamePage() {
         navigate("/", { replace: true });
     }
 
+    const handleEndGameRequest = () => {
+        playGameSocket.emit('game end request', { id: game._id });
+        setEndGameRequest(true);
+    }
+
+    const handleEndGameDecline = () => {
+        playGameSocket.emit('game end decline', { id: game._id });
+        setEndGameRequest(false);
+    }
+
     return (
         <div>
             {game && playerLetters && players && (
@@ -285,10 +285,14 @@ function PlayGamePage() {
                             <button onClick={() => { canMove && setShowSwapModal(true) }}>Swap</button>
                             <button onClick={handleChallengeOpen}>Challenge</button>
                             <button onClick={() => setShowLeaveModal(true)}>Leave</button>
+                            {endGameRequest ? (
+                                <button onClick={handleEndGameDecline}>Decline</button>
+                            ) : (
+                                <button onClick={handleEndGameRequest}>End game request</button>
+                            )}
+
                         </>
                     )}
-
-
 
                     {players.map(player => (
                         <Player

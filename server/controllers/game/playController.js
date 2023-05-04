@@ -264,15 +264,48 @@ export default function playController(playNamespace) {
         });
 
         // Game end request. If all players wants end - game over
-        socket.on('want end', async ({ id }) => {
+        socket.on('game end request', async ({ id }) => {
             const partyID = new ObjectId(id);
             const party = await db.collection('parties').findOne({ _id: partyID });
             if (party) {
+                const player = party.players.find(p => p.login === socket.login);
+                if (player && !player.wantEnd) {
+                    player.wantEnd = true;
 
+                    // Check end of the party
+                    if (party.players.every(p => p.wantEnd)) {
+
+                        await db.collection('parties').updateOne({ _id: partyID }, {
+                            $set: {
+                                "status": "end"
+                            }
+                        });
+                    }
+
+                    await db.collection('parties').updateOne({ _id: partyID, "players.login": socket.login }, {
+                        $set: {
+                            "players.$.wantEnd": true,
+                        }
+                    });
+                }
             }
-
         });
 
+        // Decline game end request
+        socket.on('game end decline', async ({ id }) => {
+            const partyID = new ObjectId(id);
+            const party = await db.collection('parties').findOne({ _id: partyID });
+            if (party) {
+                const player = party.players.find(p => p.login === socket.login);
+                if (player && player.wantEnd) {
+                    await db.collection('parties').updateOne({ _id: partyID, "players.login": socket.login }, {
+                        $set: {
+                            "players.$.wantEnd": false,
+                        }
+                    })
+                }
+            }
+        });
     });
 }
 
@@ -377,7 +410,8 @@ async function timerTick(id, playNamespace) {
                 }
                 playNamespace.to(id).emit('timer tick', {
                     login: player.login,
-                    timeLeft: Math.max(player.timeLeft - 1, 0)
+                    timeLeft: Math.max(player.timeLeft - 1, 0),
+                    players: party.players,
                 });
                 break;
             case "challenge":
