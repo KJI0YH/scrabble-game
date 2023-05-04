@@ -1,12 +1,13 @@
 import { io } from 'socket.io-client';
+import { config } from './config';
 
-const serverURL = 'http://192.168.100.2:44444';
-export const defaultSocket = io(serverURL, { autoConnect: false });
-export const chatSocket = io(serverURL + '/chat', { autoConnect: false });
-export const createGameSocket = io(serverURL + '/game/create', { autoConnect: false });
-export const findGameSocket = io(serverURL + '/game/find', { autoConnect: false });
-export const waitGameSocket = io(serverURL + '/game/wait', { autoConnect: false });
-export const playGameSocket = io(serverURL + '/game/play', { autoConnect: false });
+const SOCKET_URL = `${config.SERVER_URL}:${config.SOCKET_PORT}`
+export const defaultSocket = io(SOCKET_URL, { autoConnect: false });
+export const chatSocket = io(SOCKET_URL + '/chat', { autoConnect: false });
+export const createGameSocket = io(SOCKET_URL + '/game/create', { autoConnect: false });
+export const findGameSocket = io(SOCKET_URL + '/game/find', { autoConnect: false });
+export const waitGameSocket = io(SOCKET_URL + '/game/wait', { autoConnect: false });
+export const playGameSocket = io(SOCKET_URL + '/game/play', { autoConnect: false });
 
 createGameSocket.onAny((event, ...args) => {
     console.log(event, args);

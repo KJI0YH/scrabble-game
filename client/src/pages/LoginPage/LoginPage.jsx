@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { config } from '../../config.js';
+
+const SERVER_URL = `${config.SERVER_URL}:${config.API_PORT}`;
 
 function LoginPage(props) {
     const { onLogin } = props;
@@ -20,7 +23,7 @@ function LoginPage(props) {
         event.preventDefault();
 
         try {
-            const response = await axios.post('http://192.168.100.2:8080/api/auth/login', { login: login, password: password });
+            const response = await axios.post(`${SERVER_URL}/api/auth/login`, { login: login, password: password });
             localStorage.setItem('token', response.data.token);
             onLogin();
             navigate('/', { replace: true });

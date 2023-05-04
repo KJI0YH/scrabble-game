@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { config } from '../../config.js';
+
+const SERVER_URL = `${config.SERVER_URL}:${config.API_PORT}`;
 
 function RegisterPage() {
     const [login, setLogin] = useState('');
@@ -26,7 +29,7 @@ function RegisterPage() {
         try {
             if (password === confirmPassword) {
                 console.log(login, password);
-                await axios.post('http://localhost:8080/api/auth/register', { login: login, password: password });
+                await axios.post(`${SERVER_URL}/api/auth/register`, { login: login, password: password });
                 navigate('/login', { replace: false });
             }
         } catch (error) {
