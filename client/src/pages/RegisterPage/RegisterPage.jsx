@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { config } from '../../config.js';
+import { config } from '../../config';
 
 const SERVER_URL = `${config.SERVER_URL}:${config.API_PORT}`;
 

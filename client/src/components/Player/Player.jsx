@@ -5,7 +5,6 @@ import axios from 'axios';
 
 function Player(props) {
     const { player } = props;
-    console.log(player);
 
     const handlePlayerClick = async () => {
         const response = await axios.get(`http://localhost:8080/api/user/${player.id}`);

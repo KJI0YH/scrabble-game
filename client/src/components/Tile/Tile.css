@@ -9,10 +9,14 @@
     aspect-ratio: 1 / 1;
     font-weight: bold;
     user-select: none;
+    background-color: black;
+    color: white;
+
 }
 
 .selected {
-    background-color: aqua;
+    background-color: yellow;
+    color: black;
 }
 
 .letter {

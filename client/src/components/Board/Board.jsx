@@ -20,16 +20,28 @@ function Board(props) {
     if (newLetters)
         letters = newLetters && letters.concat(newLetters.map(letter => { return { ...letter, type: "new letter" } }));
 
-    const colors = {
+    const backColors = {
         "triple word": '#EA3820',
         "triple letter": '#0A8FDF',
         "double word": '#E5B5B3',
         "double letter": '#AFCBEF',
         "initial": '#E5B5B3',
-        "old letter": '#FFFFFF',
+        "old letter": '#000000',
         "new letter": '#FFFF00',
         "resolve letter": '#FFFF00',
         "default": '#FFFFFF',
+    }
+
+    const frontColors = {
+        "triple word": '#000000',
+        "triple letter": '#000000',
+        "double word": '#000000',
+        "double letter": '#000000',
+        "initial": '#000000',
+        "old letter": '#FFFFFF',
+        "new letter": '#000000',
+        "resolve letter": '#000000',
+        "default": '#000000',
     }
 
     const captions = {
@@ -60,7 +72,8 @@ function Board(props) {
                 const cellIndex = row * colCount + col;
 
                 let caption = captions["default"];
-                let color = colors["default"];
+                let backColor = backColors["default"];
+                let frontColor = frontColors["default"];
                 let value = '';
 
                 const bonus = premium && premium.find(p => p.row === row && p.col === col);
@@ -69,15 +82,18 @@ function Board(props) {
                 if (letter) {
                     caption = letter.cell.letter;
                     value = letter.cell.value;
-                    color = colors[letter.type];
+                    backColor = backColors[letter.type];
+                    frontColor = frontColors[letter.type];
                 } else if (bonus) {
                     caption = captions[bonus.type];
-                    color = colors[bonus.type];
+                    backColor = backColors[bonus.type];
+                    frontColor = frontColors[bonus.type];
                 }
 
                 let cell = (
                     <Tile
-                        color={color}
+                        frontColor={frontColor}
+                        backColor={backColor}
                         letter={caption}
                         value={value}
                     />
@@ -88,7 +104,7 @@ function Board(props) {
                     input.row === row && input.col === col) {
                     cell = (
                         <Arrow
-                            color={color}
+                            color={backColor}
                             horizontal={input.horizontal}
                         />
                     )

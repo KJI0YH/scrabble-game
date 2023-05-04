@@ -9,6 +9,8 @@ function ActiveLetters(props) {
             <div className="active-letters" onClick={onClick}>
                 {letters.map(letter => (
                     <Tile
+                        // frontColor={'#FFFFFF'}
+                        // backColor={'#000000'}
                         key={letters.indexOf(letter)}
                         letter={letter.letter}
                         value={letter.value}
