@@ -10,6 +10,7 @@ import SkipModal from "../../components/SkipModal/SkipModal";
 import SwapModal from "../../components/SwapModal/SwapModal";
 import LeaveModal from '../../components/LeaveModal/LeaveModal';
 import Timer from '../../components/Timer/Timer';
+import GameOverModal from '../../components/GameOverModal/GameOverModal';
 
 const defaultInput = {
     row: -1,
@@ -30,6 +31,7 @@ function PlayGamePage() {
     const [showSkipModal, setShowSkipModal] = useState(false);
     const [showSwapModal, setShowSwapModal] = useState(false);
     const [showLeaveModal, setShowLeaveModal] = useState(false);
+    const [showGameOverModal, setShowGameOverModal] = useState(false);
 
     const [challenge, setChallenge] = useState(null);
     const [resolveLetters, setResolveLetters] = useState([]);
@@ -102,10 +104,16 @@ function PlayGamePage() {
             }
         });
 
+        playGameSocket.on('game over', ({ players }) => {
+            setPlayers(players);
+            setShowGameOverModal(true);
+        });
+
         return () => {
             playGameSocket.off('game state');
             playGameSocket.off('timer tick');
             playGameSocket.off('challenge tick');
+            playGameSocket.off('game over');
         }
     }, []);
 
@@ -234,6 +242,12 @@ function PlayGamePage() {
         navigate('/', { replace: true });
     }
 
+    const handleGoHome = () => {
+        setShowGameOverModal(false);
+        playGameSocket.disconnect();
+        navigate("/", { replace: true });
+    }
+
     return (
         <div>
             {game && playerLetters && players && (
@@ -303,6 +317,12 @@ function PlayGamePage() {
                         visible={showLeaveModal}
                         onClick={handleLeave}
                         onCancel={() => setShowLeaveModal(false)}
+                    />
+
+                    <GameOverModal
+                        visible={showGameOverModal}
+                        players={players}
+                        onGoHome={handleGoHome}
                     />
                 </>
             )

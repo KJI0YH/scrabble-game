@@ -247,15 +247,30 @@ export default function playController(playNamespace) {
 
                 } else {
                     await db.collection('parties').updateOne({ _id: partyID }, {
-                        $pull: { "players": { "login": socket.login } },
                         $push: { "history": history },
                         $set: { "bag": party.bag },
+                    });
+                    await db.collection('parties').updateOne({ _id: partyID, "players.login": socket.login }, {
+                        $set: {
+                            "timeLeft": 0,
+                            "letters": [],
+                        }
                     });
                 }
             }
 
             const newState = await db.collection('parties').findOne({ _id: partyID });
             playNamespace.to(id).emit('game state', { game: newState });
+        });
+
+        // Game end request. If all players wants end - game over
+        socket.on('want end', async ({ id }) => {
+            const partyID = new ObjectId(id);
+            const party = await db.collection('parties').findOne({ _id: partyID });
+            if (party) {
+
+            }
+
         });
 
     });
@@ -298,11 +313,18 @@ async function nextPlayer(id) {
     if (party) {
         const players = party.players;
 
+        // End of the party all time is up
+        if (!players.find(p => p.timeLeft > 0)) {
+            return await db.collection('parties').updateOne({ _id: partyID }, {
+                $set: { "status": "end" }
+            });
+        }
+
         do {
             const popPlayer = players.shift();
             popPlayer.skip = false;
             players.push(popPlayer);
-        } while (players[0].skip);
+        } while (players[0].skip || players[0].timeLeft <= 0);
 
         await db.collection('parties').updateOne({ _id: partyID }, {
             $set: { "players": players }
@@ -319,17 +341,6 @@ async function nowPlayer(id) {
     }
     else {
         return null;
-    }
-}
-
-// Penalizing a player by skipping a move
-async function skipPlayer(id, login) {
-    const partyID = new ObjectId(id);
-    const party = await db.collection('parties').findOne({ _id: partyID });
-    if (party && party.player.find(p => p.login === login)) {
-        await db.collection('parties').updateOne({ _id: partyID, "players.login": login }, {
-            $set: { "players.$.skip": true }
-        });
     }
 }
 
@@ -393,6 +404,30 @@ async function timerTick(id, playNamespace) {
                     letters: challenge.letters,
                     score: challenge.score,
                 });
+                break;
+            case "end":
+
+                // Unset game timer
+                if (roomTimers[id]) {
+                    clearInterval(roomTimers[id]);
+                }
+
+                // Save to games history
+                const game = {
+                    players: party.players.map(player => {
+                        return {
+                            login: player.login,
+                            score: player.score,
+                        }
+                    }),
+                    history: party.history,
+                    lang: party.lang,
+                };
+                await db.collection('games').insertOne(game);
+                await db.collection('parties').deleteOne({ _id: partyID });
+
+                // Notify users that game over
+                playNamespace.to(id).emit('game over', { players: party.players });
                 break;
         }
     }
@@ -581,6 +616,7 @@ async function validateChallenge(tiles, party) {
     return false;
 }
 
+// Closing opening challenge
 async function closeChallenge(id, letters) {
     const partyID = new ObjectId(id);
     const party = await db.collection('parties').findOne({ _id: partyID });
@@ -597,7 +633,6 @@ async function closeChallenge(id, letters) {
 
             // Player penalty
             player.score -= party.challenge.score;
-            player.skip = true;
 
             party.board.cells = party.board.cells.filter(c => !party.challenge.letters.some(l =>
                 l.row === c.row &&

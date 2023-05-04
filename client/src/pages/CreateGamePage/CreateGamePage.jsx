@@ -25,7 +25,7 @@ function CreateGamePage() {
         });
 
         createGameSocket.on('create success', () => {
-            navigate('/game/wait', { replace: false });
+            navigate('/game/wait', { replace: true });
         });
 
         return () => {
