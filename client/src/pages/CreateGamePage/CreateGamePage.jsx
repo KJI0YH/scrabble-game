@@ -20,6 +20,10 @@ function CreateGamePage() {
             }
         }
 
+        createGameSocket.on('active party', ({ party }) => {
+            navigate('/game/play', { replace: true });
+        });
+
         createGameSocket.on('create error', ({ message }) => {
             console.log(message);
         });
@@ -29,11 +33,10 @@ function CreateGamePage() {
         });
 
         return () => {
+            createGameSocket.off('active party');
             createGameSocket.off('create error');
             createGameSocket.off('create success');
-            createGameSocket.disconnect();
         }
-
     }, []);
 
     const handleLanguageChange = (e) => {
@@ -48,7 +51,7 @@ function CreateGamePage() {
         setRoomName(e.target.value);
     }
 
-    function handleCreateGame() {
+    const handleCreateGame = () => {
         createGameSocket.emit('create game',
             {
                 language: language,

@@ -1,6 +1,7 @@
 import { ObjectId } from "mongodb";
 import db from "../../database/db.js";
 import { authenticateToken } from "../../middlewares/auth.js";
+import { checkActiveParty } from "./playController.js";
 
 export default function findController(findNamespace) {
 
@@ -15,10 +16,16 @@ export default function findController(findNamespace) {
             userID: socket.userID,
         });
 
+        // Check existing party
+        const party = await checkActiveParty(socket.login);
+        if (party) {
+            return socket.emit('active party', { party: party });
+        }
+
         // Check existing wait room
         const existWait = await checkExistWait(socket.login);
         if (existWait) {
-            socket.emit('join success');
+            return socket.emit('join success');
         }
         const activeRooms = await getActiveRooms();
         socket.emit('active rooms', { activeRooms: activeRooms });
@@ -43,7 +50,6 @@ export default function findController(findNamespace) {
                 return socket.emit('join error', { message: 'Room does not exists' });
             }
         });
-
     });
 }
 

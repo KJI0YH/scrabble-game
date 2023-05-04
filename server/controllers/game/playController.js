@@ -468,7 +468,7 @@ async function timerTick(id, playNamespace) {
 }
 
 // Check active party for player
-async function checkActiveParty(login) {
+export async function checkActiveParty(login) {
     const party = await db.collection('parties').findOne({ players: { $elemMatch: { login: login } } })
     if (party) {
         return party;

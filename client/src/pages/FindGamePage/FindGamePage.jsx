@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { findGameSocket } from '../../socket';
+import { findGameSocket, playGameSocket } from '../../socket';
 import { useNavigate } from 'react-router-dom';
 import Room from '../../components/Room/Room';
+import LeaveModal from '../../components/LeaveModal/LeaveModal';
 
 
 function FindGamePage() {
@@ -20,6 +21,10 @@ function FindGamePage() {
             }
         }
 
+        findGameSocket.on('active party', ({ party }) => {
+            navigate('/game/play', { replace: true });
+        });
+
 
         findGameSocket.on('active rooms', ({ activeRooms }) => {
             setRooms(activeRooms);
@@ -34,10 +39,10 @@ function FindGamePage() {
         });
 
         return () => {
+            findGameSocket.off('active party');
             findGameSocket.off('active rooms');
             findGameSocket.off('join error');
             findGameSocket.off('join success');
-            findGameSocket.disconnect();
         }
 
     }, []);

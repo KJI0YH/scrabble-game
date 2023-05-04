@@ -1,9 +1,9 @@
-import { findGameNamespace } from "../../app.js";
+import { findGameNamespace, playGameNamespace } from "../../app.js";
 import db from "../../database/db.js";
 import { ObjectId } from "mongodb";
 import { authenticateToken } from "../../middlewares/auth.js";
 import { getActiveRooms } from "./findController.js";
-import { MAX_LETTERS_COUNT, getLetters } from "./playController.js";
+import { MAX_LETTERS_COUNT, getLetters, checkActiveParty } from "./playController.js";
 
 export default function createController(createNamespace) {
 
@@ -17,6 +17,12 @@ export default function createController(createNamespace) {
             login: socket.login,
             userID: socket.userID,
         });
+
+        // Check existing party
+        const party = await checkActiveParty(socket.login);
+        if (party) {
+            return socket.emit('active party', { party: party });
+        }
 
         // Check existing room
         const createdRoom = await checkExistRoom(socket.login);

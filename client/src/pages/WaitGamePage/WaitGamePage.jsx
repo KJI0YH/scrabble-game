@@ -17,6 +17,10 @@ function WaitGamePage() {
             }
         }
 
+        waitGameSocket.on('active party', ({ party }) => {
+            navigate('/game/play', { replace: true });
+        });
+
         waitGameSocket.on('user joined', ({ room }) => {
             setRoom(room);
         });
@@ -34,6 +38,7 @@ function WaitGamePage() {
         });
 
         return () => {
+            waitGameSocket.off('active party');
             waitGameSocket.off('user joined');
             waitGameSocket.off('user left');
             waitGameSocket.off('game canceled');

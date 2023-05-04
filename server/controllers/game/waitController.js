@@ -3,8 +3,7 @@ import { ObjectId } from "mongodb";
 import { authenticateToken } from "../../middlewares/auth.js";
 import { getActiveRooms } from "./findController.js";
 import { findGameNamespace } from "../../app.js";
-import { getLetters } from "./playController.js";
-import { MAX_LETTERS_COUNT } from "./playController.js";
+import { checkActiveParty } from "./playController.js";
 import { createParty } from "./createController.js";
 
 export default function waitController(waitNamespace) {
@@ -19,6 +18,12 @@ export default function waitController(waitNamespace) {
             login: socket.login,
             userID: socket.userID,
         });
+
+        // Check existing party
+        const party = await checkActiveParty(socket.login);
+        if (party) {
+            return socket.emit('active party', { party: party });
+        }
 
         const room = await db.collection('rooms').findOne({ players: { $elemMatch: { $eq: socket.login } } })
         if (room) {
