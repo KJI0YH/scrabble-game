@@ -14,10 +14,19 @@ function HomePage() {
     }
 
     return (
-        <div className='buttons'>
-            <button onClick={handleCreateGame}>Create a game</button>
-            <button onClick={handleFindGame}>Find a game</button>
-        </div>
+        <div className='home-container'>
+            <div className='home-content'>
+                <div className='home-header'>Menu</div>
+                <div className='home-buttons'>
+                    <button onClick={handleCreateGame}>Create a new party</button>
+                    <button onClick={handleFindGame}>Find an online party </button>
+                    <button >Users</button>
+                    <button >Friends</button>
+                    <button >My statistics</button>
+                    <button >Logout</button>
+                </div>
+            </div>
+        </div >
     )
 }
 

@@ -31,7 +31,7 @@ function LoginPage(props) {
             navigate('/', { replace: true });
         } catch (error) {
             Swal.fire({
-                title: "",
+                title: "Login error",
                 text: error.response.data.message,
                 icon: 'error',
                 background: '#f44336',
@@ -64,7 +64,7 @@ function LoginPage(props) {
 
                     <div className='login-buttons-container'>
                         <button type="submit">Login</button>
-                        <button onClick={handleRegistration}>Registration </button>
+                        <button onClick={handleRegistration}>Sign up </button>
                     </div>
                 </form>
             </div>

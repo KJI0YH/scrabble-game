@@ -91,7 +91,7 @@ function RegistrationPage() {
 
                     <div className='registration-buttons-container'>
                         <button onClick={handleBack}>Back</button>
-                        <button onClick={handleSubmit}>Register</button>
+                        <button onClick={handleSubmit}>Sign up</button>
                     </div>
                 </div>
             </div>
