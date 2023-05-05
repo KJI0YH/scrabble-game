@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { waitGameSocket } from "../../socket";
+import './WaitGamePage.css';
 
 function WaitGamePage() {
     const navigate = useNavigate();
@@ -57,26 +58,46 @@ function WaitGamePage() {
     }
 
     return (
-        <div>
+        <div className="wait-container">
             {room && (
-                <>
-                    <p>Room name: {room.name}</p>
-                    <p>Language: {room.language}</p>
-                    <p>Minutes per player: {room.minutesPerPlayer}</p>
-                    <p>Creator: {room.creator}</p>
-                    <p>Players: </p>
-                    <ul>
-                        {room.players.map((user) => (
-                            <li key={user}>{user}</li>
-                        ))}
-                    </ul>
-                    {waitGameSocket.login === room.creator && (
-                        <button onClick={handleStartGame}>Start game</button>
-                    )}
-                    <button onClick={handleLeaveGame}>{waitGameSocket.login === room.creator ? 'Cancel game' : 'Leave game'}</button>
-                </>
-            )}
-        </div>
+                <div className="wait-content">
+                    <div className="wait-header">Wait room</div>
+                    <div className="wait-parameter">
+                        Room name: <span>{room.name}</span>
+                    </div>
+                    <div className="wait-parameter">
+                        Language: <span>{room.language}</span>
+                    </div>
+                    <div className="wait-parameter">
+                        Minutes per player: <span>{room.minutesPerPlayer}</span>
+                    </div>
+                    <div className="wait-parameter">
+                        Max number of players: <span>{room.maxPlayers}</span>
+                    </div>
+                    <div className="wait-parameter">
+                        Creator: <span>{room.creator}</span>
+                    </div>
+                    <div className="wait-parameter">
+                        Players:
+                        <ul>
+                            {room.players.map((player) => (
+                                <div className="player">
+                                    <li key={player}>{player}</li>
+                                </div>
+                            ))}
+                        </ul>
+                    </div>
+
+                    <div className="wait-buttons">
+                        {waitGameSocket.login === room.creator && (
+                            <button onClick={handleStartGame}>Start game</button>
+                        )}
+                        <button onClick={handleLeaveGame}>{waitGameSocket.login === room.creator ? 'Cancel game' : 'Leave game'}</button>
+                    </div>
+                </div>
+            )
+            }
+        </div >
     );
 }
 

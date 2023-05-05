@@ -116,7 +116,7 @@ function CreateGamePage() {
                 </div>
 
                 <div className='create-buttons'>
-                    <button onClick={handleCreateGame}>Create Game</button>
+                    <button onClick={handleCreateGame}>Create party</button>
                     <button onClick={handleBack}>Back</button>
                 </div>
             </div>
