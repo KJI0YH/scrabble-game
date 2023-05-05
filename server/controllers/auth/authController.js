@@ -15,10 +15,6 @@ const authController = {
         try {
             const { login, password } = req.body;
 
-            if (!login) {
-                throw new ErrorHandler(401, 'No login found. Enter a login and try again!');
-            }
-
             const existed = await checkExisting(login);
             if (!existed) {
                 throw new ErrorHandler(401, 'Username or password is incorrect. Try again!');

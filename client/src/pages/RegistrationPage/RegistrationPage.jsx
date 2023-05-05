@@ -33,6 +33,9 @@ function RegistrationPage() {
                     title: 'Success',
                     text: `You have successfully registered as "${login}"`,
                     icon: 'success',
+                    background: '#6aa061',
+                    color: 'white',
+                    iconColor: 'white',
                 });
                 navigate('/login', { replace: false });
             }
@@ -41,6 +44,9 @@ function RegistrationPage() {
                     title: 'Oops...',
                     text: 'The passwords do not match. Check and try again.',
                     icon: 'warning',
+                    background: '#e79029',
+                    color: 'white',
+                    iconColor: 'white',
                 });
             }
         } catch (error) {
@@ -48,6 +54,9 @@ function RegistrationPage() {
                 title: 'Oops...',
                 text: error.response.data.message,
                 icon: 'warning',
+                background: '#e79029',
+                color: 'white',
+                iconColor: 'white',
             });
         }
     }
