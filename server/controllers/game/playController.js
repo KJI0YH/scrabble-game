@@ -1,5 +1,6 @@
 import db from "../../database/db.js";
 import { authenticateToken } from "../../middlewares/auth.js";
+import { calculateGlicko } from "../../utils/GlickoRating.js";
 import { validateWord } from "../../utils/wordsDictionary.js";
 import { ObjectId } from "mongodb";
 
@@ -242,8 +243,9 @@ export default function playController(playNamespace) {
 
                 // Last player leaves
                 if (party.players.length === 1) {
+
                     // End of the game
-                    await db.collection('parties').deleteOne({ _id: partyID });
+                    await saveGameHistory(id);
 
                 } else {
                     await db.collection('parties').updateOne({ _id: partyID }, {
@@ -446,19 +448,7 @@ async function timerTick(id, playNamespace) {
                     clearInterval(roomTimers[id]);
                 }
 
-                // Save to games history
-                const game = {
-                    players: party.players.map(player => {
-                        return {
-                            login: player.login,
-                            score: player.score,
-                        }
-                    }),
-                    history: party.history,
-                    lang: party.lang,
-                };
-                await db.collection('games').insertOne(game);
-                await db.collection('parties').deleteOne({ _id: partyID });
+                await saveGameHistory(id);
 
                 // Notify users that game over
                 playNamespace.to(id).emit('game over', { players: party.players });
@@ -688,5 +678,76 @@ async function closeChallenge(id, letters) {
                 "challenge": "",
             }
         });
+    }
+}
+
+async function saveGameHistory(id) {
+    const partyID = new ObjectId(id);
+    const party = await db.collection('parties').findOne({ _id: partyID });
+    if (party) {
+
+        // Save to games history
+        const game = {
+            players: party.players.map(player => {
+                return {
+                    login: player.login,
+                    score: player.score,
+                }
+            }),
+            history: party.history,
+            lang: party.lang,
+        };
+
+        // Get all players in game
+        const players = await db.collection('users').find({
+            login: {
+                $in: party.players.map(p => p.login)
+            }
+        }).toArray();
+
+        const results = [];
+
+        party.players.forEach(player => {
+            const playerResults = [];
+            party.players.forEach(opponent => {
+                if (player.login === opponent.login || player.score < opponent.score) {
+                    playerResults.push(0);
+                } else if (player.score === opponent.score) {
+                    playerResults.push(0.5);
+                } else if (player.score > opponent.score) {
+                    playerResults.push(1);
+                }
+            });
+            results.push(playerResults);
+        });
+
+        // Calculate Glicko rating for each player
+        calculateGlicko(players, results);
+
+        players.forEach(async (player, i) => {
+            const res = Math.min(results[i].filter((_, index) => index !== i));
+            const lose = res === 0 ? 1 : 0;
+            const draw = res === 0.5 ? 1 : 0;
+            const win = res === 1 ? 1 : 0;
+            await db.collection('users').updateOne({ _id: player._id }, {
+                $inc: {
+                    "gamesPlayed": 1,
+                    "wins": win,
+                    "draws": draw,
+                    "loses": lose,
+                },
+                $max: {
+                    "maxScore": party.players[i].score,
+                },
+                $set: {
+                    "averageGameScore": (player.averageGameScore * player.gamesPlayed + party.players[i].score) / (player.gamesPlayed + 1),
+                    "ratingGlicko": player.ratingGlicko,
+                    "ratingDeviation": player.ratingDeviation,
+                }
+            });
+        });
+
+        await db.collection('games').insertOne(game);
+        await db.collection('parties').deleteOne({ _id: partyID });
     }
 }

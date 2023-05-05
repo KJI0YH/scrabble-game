@@ -19,6 +19,7 @@ const userController = {
             }
 
             const user = await db.collection('users').findOne({ _id: new ObjectId(id) });
+            delete user.passwordHash;
             if (user) {
                 return res.status(200).json({ success: true, user: user });
             } else {

@@ -36,6 +36,7 @@ function CreateGamePage() {
             createGameSocket.off('active party');
             createGameSocket.off('create error');
             createGameSocket.off('create success');
+            createGameSocket.disconnect();
         }
     }, []);
 

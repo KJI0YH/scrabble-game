@@ -40,7 +40,7 @@ function App() {
         <BrowserRouter>
             <Routes>
                 <Route path='/login' element={isLogged ? <Navigate to='/' /> : <LoginPage onLogin={() => setIsLogged(true)} />} />
-                <Route path='/register' element={<RegisterPage />} />
+                <Route path='/registration' element={<RegisterPage />} />
                 <Route path='/' element={isLogged ? <HomePage /> : <Navigate to='/login' />} />
                 <Route path='/game/create' element={<CreateGamePage />} />
                 <Route path='/game/find' element={<FindGamePage />} />

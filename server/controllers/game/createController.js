@@ -77,12 +77,17 @@ export async function createParty(id) {
     // Get board object for this party (TODO choosing of the board)
     const board = await db.collection('boards').findOne({ name: "classic" });
 
+    const history = {
+        type: "start",
+        timestamp: new Date(),
+    };
+
     // Create party object
     const party = {
         lang: bag.lang,
         status: "running",
         players: [],
-        history: [],
+        history: [history],
         bag: bag.letters,
         board: {
             size: board.size,

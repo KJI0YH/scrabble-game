@@ -43,6 +43,7 @@ function FindGamePage() {
             findGameSocket.off('active rooms');
             findGameSocket.off('join error');
             findGameSocket.off('join success');
+            findGameSocket.disconnect();
         }
 
     }, []);
