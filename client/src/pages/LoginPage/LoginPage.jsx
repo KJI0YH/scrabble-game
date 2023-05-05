@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { config } from '../../config';
+import './LoginPage.css';
 
 const SERVER_URL = `${config.SERVER_URL}:${config.API_PORT}`;
 
@@ -32,20 +33,33 @@ function LoginPage(props) {
         }
     }
 
+    const handleRegistration = () => {
+        navigate('/registration', { replace: false });
+    }
+
     return (
-        <div>
-            <h1>Login</h1>
-            <form onSubmit={handleSubmit}>
-                <label>
-                    Login:
-                    <input type="text" value={login} onChange={handleLoginChange} />
-                </label>
-                <label>
-                    Password:
-                    <input type="password" value={password} onChange={handlePasswordChange} />
-                </label>
-                <button type="submit">Login</button>
-            </form>
+        <div className='login-container'>
+            <div className='login-form'>
+                <div className='login-header'>Login</div>
+                <form onSubmit={handleSubmit} className='login-content'>
+                    <input
+                        type="text"
+                        placeholder='Login'
+                        value={login}
+                        onChange={handleLoginChange} />
+
+                    <input
+                        type="password"
+                        placeholder='Password'
+                        value={password}
+                        onChange={handlePasswordChange} />
+
+                    <div className='login-buttons-container'>
+                        <button type="submit">Login</button>
+                        <button onClick={handleRegistration}>Registration </button>
+                    </div>
+                </form>
+            </div>
         </div>
     );
 }
