@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage/LoginPage.jsx';
-import RegisterPage from './pages/RegisterPage/RegisterPage.jsx';
+import RegistrationPage from './pages/RegistrationPage/RegistrationPage.jsx';
 import HomePage from './pages/HomePage/HomePage.jsx';
 import CreateGamePage from './pages/CreateGamePage/CreateGamePage.jsx';
 import FindGamePage from './pages/FindGamePage/FindGamePage.jsx';
@@ -40,7 +40,7 @@ function App() {
         <BrowserRouter>
             <Routes>
                 <Route path='/login' element={isLogged ? <Navigate to='/' /> : <LoginPage onLogin={() => setIsLogged(true)} />} />
-                <Route path='/registration' element={<RegisterPage />} />
+                <Route path='/registration' element={<RegistrationPage />} />
                 <Route path='/' element={isLogged ? <HomePage /> : <Navigate to='/login' />} />
                 <Route path='/game/create' element={<CreateGamePage />} />
                 <Route path='/game/find' element={<FindGamePage />} />
