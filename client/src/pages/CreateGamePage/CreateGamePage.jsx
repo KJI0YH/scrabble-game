@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createGameSocket } from '../../socket';
+import './CreateGamePage.css';
 
 function CreateGamePage() {
     const [language, setLanguage] = useState('English');
     const [minutesPerPlayer, setMinutesPerPlayer] = useState(15);
-    const [roomName, setRoomName] = useState('');
+    const [maxPlayers, setMaxPlayers] = useState(4);
+    const [roomName, setRoomName] = useState("");
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -52,6 +54,10 @@ function CreateGamePage() {
         setRoomName(e.target.value);
     }
 
+    const handleMaxPlayersChange = (e) => {
+        setMaxPlayers(e.target.value);
+    }
+
     const handleCreateGame = () => {
         createGameSocket.emit('create game',
             {
@@ -61,27 +67,59 @@ function CreateGamePage() {
             });
     }
 
+    const handleBack = () => {
+        navigate(-1);
+    }
+
     return (
-        <div>
-            <h1>Create Game</h1>
-            <label>
-                Language:
-                <select value={language} onChange={handleLanguageChange}>
-                    <option value="English">English</option>
-                    <option value="Russian">Russian</option>
-                </select>
-            </label>
-            <br />
-            <label>
-                Minutes per player:
-                <input type="number" value={minutesPerPlayer} onChange={handleMinutesPerPlayerChange} min={1} max={60} />
-            </label>
-            <br />
-            <label>
-                Room name:
-                <input type="text" value={roomName} onChange={handleRoomNameChange} />
-            </label>
-            <button onClick={handleCreateGame}>Create Game</button>
+        <div className='create-container'>
+            <div className='create-content'>
+                <div className='create-header'>Create party</div>
+
+                <div className='create-parameter'>
+                    <input
+                        type="text"
+                        placeholder='Room name'
+                        value={roomName}
+                        onChange={handleRoomNameChange}
+                    />
+                </div>
+
+                <div className='create-parameter'>
+                    <label>Language:</label>
+                    <select value={language} onChange={handleLanguageChange}>
+                        <option value="English">English</option>
+                        <option value="Russian">Russian</option>
+                    </select>
+                </div>
+
+                <div className='create-parameter'>
+                    <label>Minutes per player:</label>
+                    <input
+                        type="number"
+                        value={minutesPerPlayer}
+                        onChange={handleMinutesPerPlayerChange}
+                        min={1}
+                        max={60}
+                    />
+                </div>
+
+                <div className='create-parameter'>
+                    <label>Max number of players:</label>
+                    <input
+                        type="number"
+                        value={maxPlayers}
+                        onChange={handleMaxPlayersChange}
+                        min={2}
+                        max={4}
+                    />
+                </div>
+
+                <div className='create-buttons'>
+                    <button onClick={handleCreateGame}>Create Game</button>
+                    <button onClick={handleBack}>Back</button>
+                </div>
+            </div>
         </div>
     );
 }
