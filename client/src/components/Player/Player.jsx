@@ -4,7 +4,7 @@ import './Player.css';
 import axios from 'axios';
 
 function Player(props) {
-    const { player } = props;
+    const { player, challenge, initiator } = props;
 
     const handlePlayerClick = async () => {
         const response = await axios.get(`http://localhost:8080/api/user/${player.id}`);
@@ -14,21 +14,44 @@ function Player(props) {
     return (
         <div className="player-container"
             onClick={handlePlayerClick}
-            style={{ backgroundColor: player.wantEnd ? '#FFFF00' : '#FFFFFF' }}
+            style={{
+                ...(player.move && { borderColor: 'green' }),
+                ...(player.timeLeft === 0 && { borderColor: 'red' })
+            }}
         >
-            <div className="player-login">
-                Login: {player.login}
+            <div className='player-header'>
+                <div className="player-login">
+                    {player.login}
+                </div>
+                {challenge && (
+                    <div className='challenge'>
+                        challenge
+                    </div>
+                )}
+                {initiator && (
+                    <div className='challenge'>
+                        initiator
+                    </div>
+                )}
+                {player.wantEnd && (
+                    <div className='wants-to-end'>
+                        wants to end
+                    </div>
+                )}
             </div>
-            <div className="player-score">
-                Score: {player.score}
-            </div>
-            <Timer
-                caption="Time left: "
-                seconds={player.timeLeft}
-            />
-            <ActiveLetters
+            {/* <ActiveLetters
                 letters={player.letters}
-            />
+            /> */}
+            <div className='player-info'>
+                <div className="player-score">
+                    {player.score}
+                </div>
+                <div className='player-timer'>
+                    <Timer
+                        seconds={player.timeLeft}
+                    />
+                </div>
+            </div>
         </div>
     );
 }

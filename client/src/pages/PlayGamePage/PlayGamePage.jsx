@@ -71,18 +71,19 @@ function PlayGamePage() {
             setChallenge(null);
             setResolveLetters([]);
 
+            players.find(p => p.login === login).move = true;
             setPlayers(players);
         });
 
         playGameSocket.on('challenge tick', ({ player, initiator, score, letters, timeLeft }) => {
+            setChallenge({
+                player: player,
+                initiator: initiator,
+                score: score,
+                letters: letters,
+                timeLeft: timeLeft,
+            });
             if (player === playGameSocket.login) {
-                setChallenge({
-                    player: player,
-                    initiator: initiator,
-                    score: score,
-                    letters: letters,
-                    timeLeft: timeLeft,
-                });
                 setResolveLetters(prev => {
                     letters.map(letter => {
                         if (!prev.find(p => p.col === letter.col && p.row === letter.row)) {
@@ -267,19 +268,21 @@ function PlayGamePage() {
                             />
                         </div>
 
-                        {challenge ? (
-                            <>
-                                <div className='challenge-timer'>
-                                    <Timer
-                                        caption={"Challenge time left: "}
-                                        seconds={challenge.timeLeft}
-                                    />
-                                </div>
-                                <div className='play-controller-buttons'>
-                                    <button onClick={handleChallengeCancel} style={{ backgroundColor: '#e79029' }}>Cancel selection</button>
-                                    <button onClick={handleChallengeClose} style={{ backgroundColor: '#6aa061' }}>Resolve challenge</button>
-                                </div>
-                            </>
+                        {challenge && (
+                            <div className='challenge-timer'>
+                                <Timer
+                                    caption={"Challenge time left: "}
+                                    seconds={challenge.timeLeft}
+                                />
+                            </div>
+                        )}
+
+                        {challenge && resolveLetters.length > 0 ? (
+                            <div className='play-controller-buttons'>
+                                <button onClick={handleChallengeCancel} style={{ backgroundColor: '#e79029' }}>Cancel selection</button>
+                                <button onClick={handleChallengeClose} style={{ backgroundColor: '#6aa061' }}>Resolve challenge</button>
+                            </div>
+
                         ) : (
                             <>
                                 <div className='play-controller-active'>
@@ -305,17 +308,24 @@ function PlayGamePage() {
                         )}
                     </div>
 
-                    {/* <div className='players-container'>
-                            {players.map(player => (
+                    <div className='play-info'>
+                        <div className='players-container'>
+                            {players.sort((a, b) => a.login.localeCompare(b.login)).map(player => (
                                 <Player
                                     player={player}
+                                    challenge={challenge && challenge.player === player.login}
+                                    initiator={challenge && challenge.initiator === player.login}
                                 />
                             ))}
-                        </div> */}
-                    {/* 
+                        </div>
+
                         <TileBag
                             tiles={game.bag}
-                        /> */}
+                        />
+                        <div style={{ flex: 1, backgroundColor: 'red' }}>
+                            history
+                        </div>
+                    </div>
 
                     <SkipModal
                         visible={showSkipModal}

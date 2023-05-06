@@ -2,9 +2,17 @@
     background-color: #472238;
     width: 100%;
     height: 100%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    align-items: center;
 }
 
 .play-controller {
+    align-items: center;
+    justify-content: center;
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -48,11 +56,25 @@
 }
 
 .play-controller .challenge-timer {
-
     color: white;
     margin: 10px;
     text-transform: uppercase;
+}
 
+.play-info {
+    height: 100vh;
+    padding: 10px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.play-info .players-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 5px;
+    /* max-width: min(100vw, 80vh);
+    min-width: min(50vw, 40vh); */
 }
 
 .modal {

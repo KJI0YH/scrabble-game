@@ -254,8 +254,8 @@ export default function playController(playNamespace) {
                     });
                     await db.collection('parties').updateOne({ _id: partyID, "players.login": socket.login }, {
                         $set: {
-                            "timeLeft": 0,
-                            "letters": [],
+                            "players.$.timeLeft": 0,
+                            "players.$.letters": [],
                         }
                     });
                 }
@@ -275,7 +275,7 @@ export default function playController(playNamespace) {
                     player.wantEnd = true;
 
                     // Check end of the party
-                    if (party.players.every(p => p.wantEnd)) {
+                    if (party.players.filter(p => p.timeLeft > 0).every(p => p.wantEnd)) {
 
                         await db.collection('parties').updateOne({ _id: partyID }, {
                             $set: {
@@ -459,7 +459,14 @@ async function timerTick(id, playNamespace) {
 
 // Check active party for player
 export async function checkActiveParty(login) {
-    const party = await db.collection('parties').findOne({ players: { $elemMatch: { login: login } } })
+    const party = await db.collection('parties').findOne({
+        players: {
+            $elemMatch: {
+                login: login,
+                timeLeft: { $gt: 0 }
+            }
+        }
+    })
     if (party) {
         return party;
     }
