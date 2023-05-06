@@ -79,13 +79,11 @@ function WaitGamePage() {
                     </div>
                     <div className="wait-parameter">
                         Players:
-                        <ul>
-                            {room.players.map((player) => (
-                                <div className="player">
-                                    <li key={player}>{player}</li>
-                                </div>
-                            ))}
-                        </ul>
+                        {room.players.map((player) => (
+                            <div className="player" key={player}>
+                                {player}
+                            </div>
+                        ))}
                     </div>
 
                     <div className="wait-buttons">

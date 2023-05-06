@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { findGameSocket, playGameSocket } from '../../socket';
 import { useNavigate } from 'react-router-dom';
 import Room from '../../components/Room/Room';
-import LeaveModal from '../../components/LeaveModal/LeaveModal';
+import './FindGamePage.css';
 
 
 function FindGamePage() {
@@ -49,24 +49,33 @@ function FindGamePage() {
     }, []);
 
     const handleJoin = (event) => {
-        const room = event.target.closest('.room-card');
+        const room = event.target.closest('.room-container');
         if (room) {
             console.log(room.dataset.id);
             findGameSocket.emit('join game', { id: room.dataset.id });
         }
     }
 
+    const handleBack = () => {
+        navigate(-1);
+    }
+
     return (
-        <div>
-            <h2>Active Rooms</h2>
-            <ul>
-                {rooms && rooms.map((room) => (
-                    <Room
-                        room={room}
-                        onJoin={handleJoin}
-                    />
-                ))}
-            </ul>
+        <div className='find-container'>
+            <div className='find-content'>
+                <div className='find-header'>Active rooms</div>
+                <div className='rooms-container'>
+                    {rooms && rooms.map((room) => (
+                        <Room
+                            room={room}
+                            onJoin={handleJoin}
+                        />
+                    ))}
+                </div>
+                <div className='find-buttons'>
+                    <button onClick={handleBack}>Back</button>
+                </div>
+            </div>
         </div>
     );
 }

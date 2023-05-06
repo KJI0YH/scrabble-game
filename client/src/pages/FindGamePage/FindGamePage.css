@@ -1,4 +1,4 @@
-.home-container {
+.find-container {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -8,39 +8,44 @@
     user-select: none;
 }
 
-.home-content {
+.find-content {
+    height: 90%;
     display: flex;
     flex-direction: column;
     background-color: rgba(0, 0, 0, 0.5);
-    padding: 5%;
-    border-radius: 10px;
     color: white;
+    padding: 1% 5%;
+    border-radius: 10px;
+    font-size: 20px;
 }
 
-.home-header {
+.rooms-container {
+    overflow: scroll;
+}
+
+.find-header {
     text-transform: uppercase;
     text-align: center;
     font-size: 30px;
-    margin: 20px;
 }
 
-.home-buttons {
-    display: flex;
-    flex-direction: column;
+.find-buttons {
+    margin-top: 20px;
 }
 
-.home-buttons button {
+.find-buttons button {
+    width: 100%;
     background-color: #7f6b7c;
-    color: white;
+    color: #f6f1e3;
     margin: 5px;
     padding: 10px;
-    font-size: 20px;
-    border: 2px solid #999;
+    font-size: 14px;
+    border: 2px solid #f6f1e3;
     border-radius: 10px;
     transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s
 }
 
-.home-buttons button:hover {
+.find-buttons button:hover {
     background-color: #d29c4f;
     color: #472238;
     border-color: #472238;

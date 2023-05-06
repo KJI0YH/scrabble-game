@@ -43,6 +43,7 @@
     background-color: #d29c4f;
     border-radius: 5px;
     padding: 0 5px;
+    margin: 5px 0;
 }
 
 .wait-buttons {
@@ -64,5 +65,5 @@
 .wait-buttons button:hover {
     background-color: #d29c4f;
     color: #472238;
-    border-color: #af7e89;
+    border-color: #472238;
 }
