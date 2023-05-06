@@ -249,60 +249,69 @@ function PlayGamePage() {
     }
 
     return (
-        <div>
+        <div className='play-container'>
             {game && playerLetters && players && (
                 <>
-                    <Board
-                        rowCount={game.board.size}
-                        colCount={game.board.size}
-                        premium={game.board.premium}
-                        oldLetters={oldLetters}
-                        newLetters={newLetters}
-                        resolveLetters={resolveLetters}
-                        onClick={handleBoardCellClick}
-                        onMouseDown={handleChallengeSelect}
-                        input={input}
-                    />
-
-                    {challenge ? (
-                        <>
-                            <Timer
-                                caption={"Challenge time left: "}
-                                seconds={challenge.timeLeft}
+                    <div className='play-controller'>
+                        <div className='play-board'>
+                            <Board
+                                rowCount={game.board.size}
+                                colCount={game.board.size}
+                                premium={game.board.premium}
+                                oldLetters={oldLetters}
+                                newLetters={newLetters}
+                                resolveLetters={resolveLetters}
+                                onClick={handleBoardCellClick}
+                                onMouseDown={handleChallengeSelect}
+                                input={input}
                             />
-                            <button onClick={handleChallengeClose}>Resolve challenge</button>
-                            <button onClick={handleChallengeCancel}>Cancel selection</button>
-                        </>
-                    ) : (
-                        <>
-                            < ActiveLetters
-                                letters={playerLetters}
-                                onClick={handleActiveLetterClick}
-                            />
+                        </div>
 
-                            <button onClick={handleSubmit}>Submit</button>
-                            <button onClick={() => { canMove && setShowSkipModal(true) }}>Skip</button>
-                            <button onClick={() => { canMove && setShowSwapModal(true) }}>Swap</button>
-                            <button onClick={handleChallengeOpen}>Challenge</button>
-                            <button onClick={() => setShowLeaveModal(true)}>Leave</button>
-                            {endGameRequest ? (
-                                <button onClick={handleEndGameDecline}>Decline</button>
-                            ) : (
-                                <button onClick={handleEndGameRequest}>End game request</button>
-                            )}
+                        {challenge ? (
+                            <>
+                                <Timer
+                                    caption={"Challenge time left: "}
+                                    seconds={challenge.timeLeft}
+                                />
+                                <button onClick={handleChallengeClose}>Resolve challenge</button>
+                                <button onClick={handleChallengeCancel}>Cancel selection</button>
+                            </>
+                        ) : (
+                            <>
+                                <div className='play-controller-active'>
+                                    < ActiveLetters
+                                        letters={playerLetters}
+                                        onClick={handleActiveLetterClick}
+                                    />
+                                </div>
 
-                        </>
-                    )}
+                                <div className='play-controller-buttons'>
+                                    <button onClick={() => setShowLeaveModal(true)} style={{ backgroundColor: '#f44336' }}>Leave</button>
+                                    {endGameRequest ? (
+                                        <button onClick={handleEndGameDecline} style={{ backgroundColor: '#6aa061' }}>Decline</button>
+                                    ) : (
+                                        <button onClick={handleEndGameRequest} style={{ backgroundColor: '#e79029' }}>Finish</button>
+                                    )}
+                                    <button onClick={handleChallengeOpen} style={{ backgroundColor: '#e79029' }}>Challenge</button>
+                                    <button onClick={() => { canMove && setShowSkipModal(true) }} style={{ backgroundColor: '#af7d88' }}>Skip</button>
+                                    <button onClick={() => { canMove && setShowSwapModal(true) }} style={{ backgroundColor: '#af7d88' }}>Swap</button>
+                                    <button onClick={handleSubmit} style={{ backgroundColor: '#6aa061' }}>Submit</button>
+                                </div>
+                            </>
+                        )}
+                    </div>
 
-                    {players.map(player => (
-                        <Player
-                            player={player}
-                        />
-                    ))}
-
-                    <TileBag
-                        tiles={game.bag}
-                    />
+                    {/* <div className='players-container'>
+                            {players.map(player => (
+                                <Player
+                                    player={player}
+                                />
+                            ))}
+                        </div> */}
+                    {/* 
+                        <TileBag
+                            tiles={game.bag}
+                        /> */}
 
                     <SkipModal
                         visible={showSkipModal}
@@ -329,9 +338,8 @@ function PlayGamePage() {
                         onGoHome={handleGoHome}
                     />
                 </>
-            )
-            }
-        </div >
+            )}
+        </div>
     )
 }
 

@@ -1,17 +1,19 @@
 .board {
+    width: min(100vw, 80vh);
+    height: min(100vw, 80vh);
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(calc(100% / 17), 1fr));
-    grid-template-rows: repeat(auto-fit, minmax(calc(100% / 17), 1fr));
+    grid-template-columns: repeat(16, 1fr);
+    grid-template-rows: repeat(16, 1fr);
     gap: 1px;
-    aspect-ratio: 1 / 1;
-    width: 70%;
     user-select: none;
+    aspect-ratio: 1/1;
 }
 
 .axis {
     display: flex;
+    color: white;
+    font-weight: bold;
     align-items: center;
     justify-content: center;
-    font-size: calc(1vw + 1vh);
     user-select: none;
 }
