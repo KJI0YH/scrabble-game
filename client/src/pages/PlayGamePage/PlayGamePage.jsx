@@ -269,12 +269,16 @@ function PlayGamePage() {
 
                         {challenge ? (
                             <>
-                                <Timer
-                                    caption={"Challenge time left: "}
-                                    seconds={challenge.timeLeft}
-                                />
-                                <button onClick={handleChallengeClose}>Resolve challenge</button>
-                                <button onClick={handleChallengeCancel}>Cancel selection</button>
+                                <div className='challenge-timer'>
+                                    <Timer
+                                        caption={"Challenge time left: "}
+                                        seconds={challenge.timeLeft}
+                                    />
+                                </div>
+                                <div className='play-controller-buttons'>
+                                    <button onClick={handleChallengeCancel} style={{ backgroundColor: '#e79029' }}>Cancel selection</button>
+                                    <button onClick={handleChallengeClose} style={{ backgroundColor: '#6aa061' }}>Resolve challenge</button>
+                                </div>
                             </>
                         ) : (
                             <>

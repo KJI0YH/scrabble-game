@@ -47,6 +47,14 @@
     font-size: 12px;
 }
 
+.play-controller .challenge-timer {
+
+    color: white;
+    margin: 10px;
+    text-transform: uppercase;
+
+}
+
 .modal {
     display: flex;
     justify-content: center;
