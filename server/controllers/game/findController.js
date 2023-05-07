@@ -39,6 +39,11 @@ export default function findController(findNamespace) {
             const roomID = new ObjectId(id);
             const room = await db.collection('rooms').findOne({ _id: roomID });
             if (room) {
+
+                if (room.players.length >= room.maxPlayers) {
+                    return socket.emit('join error', { message: 'The room is full' });
+                }
+
                 if (!room.players.includes(socket.login)) {
                     await db.collection('rooms').updateOne({ _id: roomID }, { $push: { players: socket.login } });
                 }

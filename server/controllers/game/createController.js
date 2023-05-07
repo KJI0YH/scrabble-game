@@ -31,7 +31,7 @@ export default function createController(createNamespace) {
         }
 
         // Creating a wait room
-        socket.on('create game', async ({ language, minutesPerPlayer, roomName }) => {
+        socket.on('create game', async ({ language, minutesPerPlayer, maxPlayers, roomName }) => {
 
             // Check existing room
             const existRoom = await checkExistRoom(socket.login);
@@ -45,6 +45,7 @@ export default function createController(createNamespace) {
                 name: roomName,
                 language: language,
                 minutesPerPlayer: minutesPerPlayer,
+                maxPlayers: maxPlayers,
                 creator: socket.login,
             }
             await db.collection('rooms').insertOne(room);

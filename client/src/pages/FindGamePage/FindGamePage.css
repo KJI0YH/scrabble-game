@@ -35,18 +35,16 @@
 
 .find-buttons button {
     width: 100%;
-    background-color: #7f6b7c;
-    color: #f6f1e3;
+    background-color: rgba(47, 22, 38, 0.5);
+    color: white;
     margin: 5px;
     padding: 10px;
     font-size: 14px;
-    border: 2px solid #f6f1e3;
+    border: 2px solid white;
     border-radius: 10px;
     transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s
 }
 
 .find-buttons button:hover {
     background-color: #d29c4f;
-    color: #472238;
-    border-color: #472238;
 }

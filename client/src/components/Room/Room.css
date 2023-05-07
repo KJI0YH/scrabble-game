@@ -1,6 +1,5 @@
 .room-container {
-    border: 2px solid #f6f1e3;
-    background-color: #7f6b7c;
+    border: 2px solid white;
     padding: 10px;
     border-radius: 10px;
     font-size: 16px;
@@ -8,8 +7,8 @@
 }
 
 .room-header {
-    background-color: #f6f1e3;
-    color: black;
+    color: white;
+    border: 1px solid white;
     border-radius: 10px;
     padding: 5px;
     text-align: center;
@@ -35,24 +34,28 @@
 
 .room-content button {
     width: 100%;
-    background-color: #7f6b7c;
-    color: #f6f1e3;
-    margin: 5px;
-    padding: 10px;
-    font-size: 14px;
-    border: 2px solid #f6f1e3;
+    padding: 5px;
+    margin-top: 10px;
+    background-color: rgba(47, 22, 38, 0.5);
+    color: white;
+    border: 1px solid white;
     border-radius: 10px;
-    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s
+    transition: background-color 0.2s ease-in-out
 }
 
 .room-content button:hover {
     background-color: #d29c4f;
-    color: #472238;
-    border-color: #472238;
+}
+
+.players-container {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
 }
 
 .players-container .player {
     background-color: #d29c4f;
     border-radius: 5px;
-    padding: 0 5px;
+    padding: 5px;
+    margin: 5px;
 }

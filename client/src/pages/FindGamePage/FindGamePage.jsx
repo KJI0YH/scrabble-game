@@ -3,7 +3,7 @@ import { findGameSocket, playGameSocket } from '../../socket';
 import { useNavigate } from 'react-router-dom';
 import Room from '../../components/Room/Room';
 import './FindGamePage.css';
-
+import Swal from 'sweetalert2'
 
 function FindGamePage() {
     const navigate = useNavigate();
@@ -31,7 +31,14 @@ function FindGamePage() {
         });
 
         findGameSocket.on('join error', ({ message }) => {
-
+            Swal.fire({
+                title: "Join error",
+                text: message,
+                icon: 'error',
+                background: '#f44336',
+                color: 'white',
+                iconColor: 'white'
+            });
         });
 
         findGameSocket.on('join success', () => {

@@ -63,6 +63,7 @@ function CreateGamePage() {
             {
                 language: language,
                 minutesPerPlayer: minutesPerPlayer,
+                maxPlayers: maxPlayers,
                 roomName: roomName,
             });
     }

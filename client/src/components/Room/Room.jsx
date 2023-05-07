@@ -39,13 +39,14 @@ function Room(props) {
                         </span>
                     </div>
                 </div>
+
+                <div className='room-info-item'>Players:</div>
                 <div className='players-container'>
-                    Players:
                     {room.players.map((player) => (
                         <div className='player' key={player}>{player}</div>
                     ))}
                 </div>
-                <button onClick={onJoin}>Join</button>
+                <button className='room-join-button' onClick={onJoin}>Join</button>
             </div>
         </div>
     );
