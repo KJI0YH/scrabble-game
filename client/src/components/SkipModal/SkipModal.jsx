@@ -11,8 +11,10 @@ function SkipModal(props) {
                         <div>
                             <span>Are you sure you want to skip a move?</span>
                         </div>
-                        <button onClick={onClick}>Skip</button>
-                        <button onClick={onCancel}>Cancel</button>
+                        <div className='modal-buttons'>
+                            <button onClick={onCancel} style={{ backgroundColor: '#f44336' }}>Cancel</button>
+                            <button onClick={onClick} style={{ backgroundColor: '#6aa061' }}>Skip</button>
+                        </div>
                     </div>
                 </div>
             )}
