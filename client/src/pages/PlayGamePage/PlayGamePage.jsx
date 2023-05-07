@@ -250,6 +250,15 @@ function PlayGamePage() {
         setEndGameRequest(false);
     }
 
+    const handleCancel = (event) => {
+        setNewLetters([]);
+        setInput(defaultInput);
+        const cells = document.querySelectorAll('.tile');
+        cells.forEach(cell => {
+            cell.classList.remove('selected');
+        });
+    }
+
     return (
         <div className='play-container'>
             {game && playerLetters && players && (
@@ -284,27 +293,34 @@ function PlayGamePage() {
                                     />
                                 </div>
 
-                                <div className='play-controller-buttons'>
-                                    <button onClick={() => setShowLeaveModal(true)} style={{ backgroundColor: '#f44336' }}>Leave</button>
-                                    {endGameRequest ? (
-                                        <button onClick={handleEndGameDecline} style={{ backgroundColor: '#6aa061' }}>Decline</button>
-                                    ) : (
-                                        <button onClick={handleEndGameRequest} style={{ backgroundColor: '#e79029' }}>Finish</button>
-                                    )}
-                                    <button onClick={handleChallengeOpen} style={{ backgroundColor: '#e79029' }}>Challenge</button>
-                                    <button onClick={() => { canMove && setShowSkipModal(true) }} style={{ backgroundColor: '#af7d88' }}>Skip</button>
-                                    <button onClick={() => { canMove && setShowSwapModal(true) }} style={{ backgroundColor: '#af7d88' }}>Swap</button>
-                                    <button onClick={handleSubmit} style={{ backgroundColor: '#6aa061' }}>Submit</button>
-                                </div>
+                                {challenge ? (
+                                    <div className='challenge-timer'>
+                                        <Timer
+                                            caption={"Challenge time left: "}
+                                            seconds={challenge.timeLeft}
+                                        />
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className='play-controller-buttons'>
+                                            <button onClick={handleCancel} style={{ backgroundColor: '#e79029' }}>Cancel</button>
+                                            <button onClick={handleSubmit} style={{ backgroundColor: '#6aa061' }}>Submit</button>
+                                        </div>
+
+                                        <div className='play-controller-buttons'>
+                                            <button onClick={() => setShowLeaveModal(true)} style={{ backgroundColor: '#f44336' }}>Leave</button>
+                                            {endGameRequest ? (
+                                                <button onClick={handleEndGameDecline} style={{ backgroundColor: '#6aa061' }}>Decline</button>
+                                            ) : (
+                                                <button onClick={handleEndGameRequest} style={{ backgroundColor: '#e79029' }}>Finish</button>
+                                            )}
+                                            <button onClick={handleChallengeOpen} style={{ backgroundColor: '#e79029' }}>Challenge</button>
+                                            <button onClick={() => { canMove && setShowSkipModal(true) }} style={{ backgroundColor: '#af7d88' }}>Skip</button>
+                                            <button onClick={() => { canMove && setShowSwapModal(true) }} style={{ backgroundColor: '#af7d88' }}>Swap</button>
+                                        </div>
+                                    </>
+                                )}
                             </>
-                        )}
-                        {challenge && (
-                            <div className='challenge-timer'>
-                                <Timer
-                                    caption={"Challenge time left: "}
-                                    seconds={challenge.timeLeft}
-                                />
-                            </div>
                         )}
                     </div>
 

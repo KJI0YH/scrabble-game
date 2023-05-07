@@ -191,12 +191,24 @@ export default function playController(playNamespace) {
                     return curr.type === "submit" && curr.timestamp > older.timestamp ? curr : older;
                 });
 
+                const lastChallenge = party.history.reduce((older, curr) => {
+                    return curr.type === "challenge" && curr.timestamp > older.timestamp ? curr : older;
+                })
+
                 if (!lastSubmit) {
                     return;
                 }
 
-                if (lastSubmit.player === socket.login) {
+                if (lastSubmit.player === socket.login || lastChallenge.timestamp > lastSubmit.timestamp) {
                     return;
+                }
+
+                const history = {
+                    type: "challenge",
+                    subtype: "open",
+                    timestamp: new Date(),
+                    player: lastSubmit.player,
+                    initiator: socket.login,
                 }
 
                 const challenge = {
@@ -211,8 +223,13 @@ export default function playController(playNamespace) {
                     $set: {
                         "status": "challenge",
                         "challenge": challenge,
+                    },
+                    $push: {
+                        "history": history,
                     }
                 });
+                const newState = await db.collection('parties').findOne({ _id: new ObjectId(id) });
+                playNamespace.to(id).emit('game state', { game: newState });
             }
         });
 
@@ -601,7 +618,7 @@ async function validateChallenge(tiles, party) {
     }
 
     // Check that a word overlaps with another word
-    if (party.board.cells.length !== 0 && party.challenge.letters.length === tiles.length) {
+    if (party.board.cells.length !== tiles.length && party.challenge.letters.length === tiles.length) {
         return false;
     }
 
@@ -639,12 +656,16 @@ async function validateChallenge(tiles, party) {
     const word = tiles.map(tile => tile.cell.letter).join("");
     const result = await validateWord(word, party.lang);
 
-    console.log(result);
-
     if (result) {
-        return true;
+        return {
+            word: word,
+            result: result,
+        }
+    } else {
+        return {
+            word: word,
+        };
     }
-    return false;
 }
 
 // Closing opening challenge
@@ -656,7 +677,16 @@ async function closeChallenge(id, letters) {
         const initiator = party.players.find(p => p.login === party.challenge.initiator);
 
         const validChallenge = await validateChallenge(letters, party);
-        if (validChallenge) {
+
+        const history = {
+            type: "challenge",
+            subtype: validChallenge.result ? "win" : "lose",
+            timestamp: new Date(),
+            player: player.login,
+            word: validChallenge.word,
+        }
+
+        if (validChallenge.result) {
 
             // Initiator penalty
             initiator.skip = true;
@@ -680,6 +710,9 @@ async function closeChallenge(id, letters) {
                 "bag": party.bag,
                 "players": party.players,
                 "board.cells": party.board.cells,
+            },
+            $push: {
+                "history": history,
             },
             $unset: {
                 "challenge": "",

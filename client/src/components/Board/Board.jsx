@@ -120,13 +120,11 @@ function Board(props) {
                     >
                         {cell}
                     </div>
-
                 )
             }
         }
         return cells;
     }
-
 
     return (
         <div className='board'>

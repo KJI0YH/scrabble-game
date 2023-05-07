@@ -22,44 +22,42 @@ function History(props) {
                     <div className='history-content'>
                         <div className='history-content-header'>
                             <div className='history-type' style={{ backgroundColor: typeColors[h.type] }}>
-                                {h.player ? `${h.player} : ` : ''}{h.type}
-                            </div>
-                            <div className='history-login'>
+                                <span>{h.initiator ? `${h.initiator} : ` : h.player ? `${h.player} : ` : ''}</span>
+                                {h.subtype && h.subtype} {h.type}
                             </div>
                             {h.score && (
-                                <div className='history-score' style={{ backgroundColor: typeColors[h.type] }} >
+                                <div className='history-type' style={{ backgroundColor: typeColors[h.type] }} >
                                     Score: {h.score}
                                 </div>
                             )}
+                            {h.word && (
+                                <div className='history-type' style={{ backgroundColor: typeColors[h.type] }}>
+                                    {h.word}
+                                </div >
+                            )}
                         </div>
 
-                        {
-                            h.letters && h.type === "submit" && (
-                                <div className='history-letters'>
-                                    {h.letters.map(l => (
-                                        <Tile
-                                            letter={l.cell.letter}
-                                            value={l.cell.value}
-                                        />
-                                    ))}
-                                </div >
-                            )
-                        }
+                        {h.letters && h.type === "submit" && (
+                            <div className='history-letters'>
+                                {h.letters.map(l => (
+                                    <Tile
+                                        letter={l.cell.letter}
+                                        value={l.cell.value}
+                                    />
+                                ))}
+                            </div >
+                        )}
 
-                        {
-                            h.letters && h.type === "swap" && (
-                                <div className='history-letters'>
-                                    {h.letters.map(l => (
-                                        <Tile
-                                            letter={l.letter}
-                                            value={l.value}
-                                        />
-                                    ))}
-                                </div >
-                            )
-                        }
-
-
+                        {h.letters && h.type === "swap" && (
+                            <div className='history-letters'>
+                                {h.letters.map(l => (
+                                    <Tile
+                                        letter={l.letter}
+                                        value={l.value}
+                                    />
+                                ))}
+                            </div >
+                        )}
 
                         < div className='history-timestamp' >
                             {new Date(h.timestamp).toLocaleString()}

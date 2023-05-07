@@ -28,15 +28,22 @@
 
 @media (orientation: landscape) {
     .play-controller {
-        height: 95vh;
+        height: 100vh;
     }
+}
+
+.play-controller .board {
+    margin-bottom: 5px;
+}
+
+.play-controller .challenge-timer {
+    margin-top: 5px;
 }
 
 .play-controller-active {
     width: min(90vw, 70vh);
     padding: 10px;
 }
-
 
 .play-controller-buttons {
     width: min(90vw, 70vh);
@@ -48,7 +55,7 @@
     text-transform: uppercase;
     margin: 1px;
     flex: 1;
-    padding: 10px;
+    padding: 7px;
     color: #fff;
     border: none;
     border: 1px solid white;
