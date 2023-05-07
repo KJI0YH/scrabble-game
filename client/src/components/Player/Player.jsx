@@ -2,18 +2,13 @@ import ActiveLetters from '../ActiveLetters/ActiveLetters';
 import Timer from '../Timer/Timer';
 import './Player.css';
 import axios from 'axios';
+import React, { useState } from 'react';
 
 function Player(props) {
     const { player, challenge, initiator } = props;
 
-    const handlePlayerClick = async () => {
-        const response = await axios.get(`http://localhost:8080/api/user/${player.id}`);
-        console.log(response);
-    };
-
     return (
         <div className="player-container"
-            onClick={handlePlayerClick}
             style={{
                 ...(player.move && { borderColor: 'green' }),
                 ...(player.timeLeft === 0 && { borderColor: 'red' })

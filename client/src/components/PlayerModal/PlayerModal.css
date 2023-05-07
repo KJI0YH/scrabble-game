@@ -1,0 +1,14 @@
+.player-stat-container {
+    text-align: left;
+}
+
+.player-stat {
+    padding: 5px;
+    border-radius: 5px;
+}
+
+.player-win-draw-lose {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}

@@ -9,9 +9,13 @@ import TileBag from "../../components/TileBag/TileBag";
 import SkipModal from "../../components/SkipModal/SkipModal";
 import SwapModal from "../../components/SwapModal/SwapModal";
 import LeaveModal from '../../components/LeaveModal/LeaveModal';
+import PlayerModal from '../../components/PlayerModal/PlayerModal';
 import Timer from '../../components/Timer/Timer';
 import GameOverModal from '../../components/GameOverModal/GameOverModal';
 import History from '../../components/History/History';
+import axios from 'axios';
+import { config } from '../../config';
+const STAT_URL = `${config.SERVER_URL}:${config.API_PORT}/api/user/`;
 
 const defaultInput = {
     row: -1,
@@ -33,7 +37,9 @@ function PlayGamePage() {
     const [showSwapModal, setShowSwapModal] = useState(false);
     const [showLeaveModal, setShowLeaveModal] = useState(false);
     const [showGameOverModal, setShowGameOverModal] = useState(false);
+    const [showPlayerModal, setShowPlayerModal] = useState(false);
     const [endGameRequest, setEndGameRequest] = useState(false);
+    const [playerStat, setPlayerStat] = useState(null);
 
     const [challenge, setChallenge] = useState(null);
     const [resolveLetters, setResolveLetters] = useState([]);
@@ -259,6 +265,20 @@ function PlayGamePage() {
         });
     }
 
+    const handlePlayerClick = async (event) => {
+        const player = event.target.closest('.player-click');
+        if (player) {
+            try {
+
+                const response = await axios.get(`${STAT_URL}${player.dataset.id}`);
+                setPlayerStat(response.data.user);
+                setShowPlayerModal(true);
+            } catch (error) {
+                console.log(error);
+            }
+        }
+    };
+
     return (
         <div className='play-container'>
             {game && playerLetters && players && (
@@ -336,11 +356,13 @@ function PlayGamePage() {
                             </div>
                             <div className='players-container'>
                                 {players.sort((a, b) => a.login.localeCompare(b.login)).map(player => (
-                                    <Player
-                                        player={player}
-                                        challenge={challenge && challenge.player === player.login}
-                                        initiator={challenge && challenge.initiator === player.login}
-                                    />
+                                    <div className='player-click' data-id={player.id} onClick={handlePlayerClick}>
+                                        <Player
+                                            player={player}
+                                            challenge={challenge && challenge.player === player.login}
+                                            initiator={challenge && challenge.initiator === player.login}
+                                        />
+                                    </div >
                                 ))}
                             </div>
                         </div>
@@ -353,6 +375,12 @@ function PlayGamePage() {
                             history={game.history}
                         />
                     </div>
+
+                    <PlayerModal
+                        visible={showPlayerModal}
+                        onCancel={() => setShowPlayerModal(false)}
+                        statistics={playerStat}
+                    />
 
                     <SkipModal
                         visible={showSkipModal}
