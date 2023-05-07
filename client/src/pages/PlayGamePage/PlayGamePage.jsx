@@ -309,14 +309,24 @@ function PlayGamePage() {
                     </div>
 
                     <div className='play-info'>
-                        <div className='players-container'>
-                            {players.sort((a, b) => a.login.localeCompare(b.login)).map(player => (
-                                <Player
-                                    player={player}
-                                    challenge={challenge && challenge.player === player.login}
-                                    initiator={challenge && challenge.initiator === player.login}
-                                />
-                            ))}
+                        <div className='players-info'>
+                            <div className='players-header'>
+                                <div>
+                                    Players
+                                </div>
+                                <div>
+                                    Active: {players.filter(p => p.timeLeft > 0).length}
+                                </div>
+                            </div>
+                            <div className='players-container'>
+                                {players.sort((a, b) => a.login.localeCompare(b.login)).map(player => (
+                                    <Player
+                                        player={player}
+                                        challenge={challenge && challenge.player === player.login}
+                                        initiator={challenge && challenge.initiator === player.login}
+                                    />
+                                ))}
+                            </div>
                         </div>
 
                         <TileBag
