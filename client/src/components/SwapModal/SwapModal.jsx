@@ -34,8 +34,8 @@ function SwapModal(props) {
             {visible && (
                 <div className='modal'>
                     <div className='modal-content'>
-                        <div>
-                            <span>Select letters to swap</span>
+                        <div className='modal-header'>
+                            Select letters to swap
                         </div>
                         <ActiveLetters
                             letters={letters}

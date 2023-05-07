@@ -8,8 +8,8 @@ function SkipModal(props) {
             {visible && (
                 <div className='modal'>
                     <div className='modal-content'>
-                        <div>
-                            <span>Are you sure you want to skip a move?</span>
+                        <div className='modal-header'>
+                            Are you sure you want to skip a move?
                         </div>
                         <div className='modal-buttons'>
                             <button onClick={onCancel} style={{ backgroundColor: '#f44336' }}>Cancel</button>

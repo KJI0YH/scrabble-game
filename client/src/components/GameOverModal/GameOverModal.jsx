@@ -9,15 +9,17 @@ function GameOverModal(props) {
             {visible && (
                 <div className='modal'>
                     <div className='modal-content'>
-                        <div>
-                            <h1>Game over</h1>
-                            {players.map(player => (
-                                <div>
-                                    <span>{player.login}:{player.score}</span>
-                                </div>
-                            ))}
+                        <div className='modal-header'>
+                            Game over
                         </div>
-                        <button onClick={onGoHome}>Go home</button>
+                        {players.sort((a, b) => b.score - a.score).map(player => (
+                            <div>
+                                {`${player.login} : ${player.score}`}
+                            </div>
+                        ))}
+                        <div className='modal-buttons'>
+                            <button onClick={onGoHome} style={{ backgroundColor: '#6aa061' }}>Go home</button>
+                        </div>
                     </div>
                 </div>
             )}

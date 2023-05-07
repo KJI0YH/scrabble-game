@@ -8,8 +8,8 @@ function LeaveModal(props) {
             {visible && (
                 <div className='modal'>
                     <div className='modal-content'>
-                        <div>
-                            <span>Are you sure you want to leave the game?</span>
+                        <div className='modal-header'>
+                            Are you sure you want to leave the game?
                         </div>
                         <div className='modal-buttons'>
                             <button onClick={onCancel} style={{ backgroundColor: '#6aa061' }}>Stay</button>
