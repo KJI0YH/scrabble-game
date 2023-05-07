@@ -27,7 +27,7 @@ function LoginPage(props) {
         try {
             const response = await axios.post(`${SERVER_URL}/api/auth/login`, { login: login, password: password });
             localStorage.setItem('token', response.data.token);
-            onLogin();
+            await onLogin();
             navigate('/', { replace: true });
         } catch (error) {
             Swal.fire({

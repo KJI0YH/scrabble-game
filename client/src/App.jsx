@@ -12,6 +12,11 @@ import axios from 'axios';
 function App() {
     const [isLogged, setIsLogged] = useState(false);
 
+    const onLogin = async () => {
+        await verifyToken();
+        setIsLogged(true)
+    }
+
     const verifyToken = async () => {
         const token = localStorage.getItem('token');
         if (token) {
@@ -19,6 +24,8 @@ function App() {
                 const response = await axios.post('http://localhost:8080/api/auth/verify', { token: token });
                 if (response.status === 200) {
                     localStorage.setItem('token', response.data.token);
+                    localStorage.setItem('userID', response.data.decoded.userID);
+                    localStorage.setItem('login', response.data.decoded.login);
                     setIsLogged(true);
                 } else {
                     setIsLogged(false);
@@ -39,7 +46,7 @@ function App() {
     return (
         <BrowserRouter>
             <Routes>
-                <Route path='/login' element={isLogged ? <Navigate to='/' /> : <LoginPage onLogin={() => setIsLogged(true)} />} />
+                <Route path='/login' element={isLogged ? <Navigate to='/' /> : <LoginPage onLogin={onLogin} />} />
                 <Route path='/registration' element={<RegistrationPage />} />
                 <Route path='/' element={isLogged ? <HomePage onLogout={() => setIsLogged(false)} /> : <Navigate to='/login' />} />
                 <Route path='/game/create' element={<CreateGamePage />} />

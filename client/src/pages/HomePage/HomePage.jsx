@@ -1,9 +1,16 @@
 import './HomePage.css';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import React, { useState } from 'react';
+import PlayerModal from '../../components/PlayerModal/PlayerModal';
+import { config } from '../../config';
+const STAT_URL = `${config.SERVER_URL}:${config.API_PORT}/api/user/`;
 
 function HomePage(props) {
     const { onLogout } = props;
     const navigate = useNavigate();
+    const [showPlayerModal, setShowPlayerModal] = useState(false);
+    const [statistics, setStatistics] = useState(null);
 
 
     function handleCreateGame() {
@@ -12,6 +19,22 @@ function HomePage(props) {
 
     function handleFindGame() {
         navigate('/game/find', { replace: false });
+    }
+
+    const handleGetStatistics = async () => {
+        const userID = localStorage.getItem('userID');
+        if (userID) {
+            try {
+                const response = await axios.get(`${STAT_URL}${userID}`);
+                setShowPlayerModal(true)
+                setStatistics(response.data.user);
+            } catch (error) {
+                console.log(error);
+            }
+        } else {
+            localStorage.removeItem('token');
+            navigate('/login', { replace: true });
+        }
     }
 
     const handleLogout = () => {
@@ -27,11 +50,16 @@ function HomePage(props) {
                     <button onClick={handleCreateGame}>Create a new party</button>
                     <button onClick={handleFindGame}>Find an online party </button>
                     {/* <button >Users</button>
-                    <button >Friends</button>
-                    <button >My statistics</button> */}
+                    <button >Friends</button> */}
+                    <button onClick={handleGetStatistics}>My statistics</button>
                     <button onClick={handleLogout}>Logout</button>
                 </div>
             </div>
+            <PlayerModal
+                visible={showPlayerModal}
+                onCancel={() => setShowPlayerModal(false)}
+                statistics={statistics}
+            />
         </div >
     )
 }
