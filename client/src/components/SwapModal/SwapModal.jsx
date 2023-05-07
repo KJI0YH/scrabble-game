@@ -41,11 +41,14 @@ function SwapModal(props) {
                             letters={letters}
                             onClick={handleLetterClick}
                         />
-                        <button onClick={() => onClick(selectedLetters)}>Swap</button>
-                        <button onClick={onCancel}>Cancel</button>
+                        <div className='modal-buttons'>
+                            <button onClick={onCancel} style={{ backgroundColor: '#f44336' }}>Cancel</button>
+                            <button onClick={() => onClick(selectedLetters)} style={{ backgroundColor: '#6aa061' }}>Swap</button>
+                        </div>
                     </div>
-                </div>
-            )}
+                </div >
+            )
+            }
         </>
     );
 }

@@ -117,14 +117,35 @@
 }
 
 .modal-content {
-    width: 70%;
-    background-color: #fff;
-    color: #000;
+    width: 50%;
+    background-color: #472238;
+    color: #fff;
     padding: 20px;
     border-radius: 10px;
+    border: 2px solid white;
     animation-name: modal-appear;
     animation-duration: 0.3s;
     animation-fill-mode: forwards;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.modal-buttons {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: row;
+}
+
+.modal-buttons button {
+    text-transform: uppercase;
+    margin: 1px;
+    flex: 1;
+    padding: 7px;
+    color: #fff;
+    border: none;
+    border: 1px solid white;
+    border-radius: 10px;
+    font-size: 12px;
 }
 
 @keyframes modal-appear {
