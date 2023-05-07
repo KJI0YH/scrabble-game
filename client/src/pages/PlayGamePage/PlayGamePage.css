@@ -11,6 +11,11 @@
 }
 
 .play-controller {
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 1px solid white;
+    border-radius: 10px;
+    margin: 10px 10px 5px 10px;
+    padding: 10px;
     align-items: center;
     justify-content: center;
     flex: 1;
@@ -20,25 +25,24 @@
 
 @media (orientation: portrait) {
     .play-controller {
-        width: 100vw;
+        width: 90vw;
     }
 }
 
 @media (orientation: landscape) {
     .play-controller {
-        height: 100vh;
+        height: 90vh;
     }
 }
 
 .play-controller-active {
-    /* height: min(100vw, 10vh); */
-    width: min(100vw, 80vh);
+    width: min(90vw, 70vh);
+    padding: 10px;
 }
 
 
 .play-controller-buttons {
-    /* height: min(100vw, 10vh); */
-    width: min(100vw, 80vh);
+    width: min(90vw, 70vh);
     display: flex;
     flex-direction: row;
 }
@@ -69,12 +73,15 @@
     flex-direction: column;
 }
 
-.play-info .players-container {
+.players-container {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 5px;
-    /* max-width: min(100vw, 80vh);
-    min-width: min(50vw, 40vh); */
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 1px solid white;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
 }
 
 .modal {

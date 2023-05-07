@@ -1,10 +1,24 @@
-.tile-bag {
+.tile-bag-container {
+    border: 1px solid white;
+    padding: 5px;
+    border-radius: 10px;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.tile-bag-header {
+    border-bottom: 1px solid white;
+    text-transform: uppercase;
+    padding: 5px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.tiles {
     display: flex;
     flex-wrap: wrap;
     flex-direction: row;
-    border: 1px solid black;
-    padding: 5px;
-    border-radius: 10px;
 }
 
 .tile-bag-cell {
@@ -15,8 +29,10 @@
 
 .tile-bag-cell-letter {
     font-weight: bold;
+    font-size: medium;
 }
 
 .tile-bag-cell-count {
-    font-style: italic;
+    align-self: flex-end;
+    font-size: small;
 }
