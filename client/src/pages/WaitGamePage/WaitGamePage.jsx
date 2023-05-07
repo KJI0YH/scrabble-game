@@ -38,6 +38,10 @@ function WaitGamePage() {
             navigate('/game/play', { replace: true });
         });
 
+        waitGameSocket.on('disconnect', () => {
+            navigate('/', { replace: true });
+        });
+
         return () => {
             waitGameSocket.off('active party');
             waitGameSocket.off('user joined');

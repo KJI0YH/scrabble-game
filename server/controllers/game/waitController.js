@@ -30,6 +30,8 @@ export default function waitController(waitNamespace) {
             const roomID = room._id.toString();
             socket.join(roomID);
             waitNamespace.to(roomID).emit('user joined', { room: room });
+        } else {
+            socket.disconnect();
         }
 
         socket.on('leave game', async ({ id }) => {

@@ -107,11 +107,16 @@ function PlayGamePage() {
             setShowGameOverModal(true);
         });
 
+        playGameSocket.on('disconnect', () => {
+            navigate('/', { replace: true });
+        });
+
         return () => {
             playGameSocket.off('game state');
             playGameSocket.off('timer tick');
             playGameSocket.off('challenge tick');
             playGameSocket.off('game over');
+            playGameSocket.off('disconnect');
         }
     }, []);
 

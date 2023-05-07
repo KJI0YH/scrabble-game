@@ -25,7 +25,7 @@ const authController = {
                 throw new ErrorHandler(401, 'Username of password is incorrect. Try again!');
             }
 
-            const token = jwt.sign({ login: login, userID: existed._id }, JWT_SECRET, { expiresIn: '1h' });
+            const token = jwt.sign({ login: login, userID: existed._id }, JWT_SECRET, { expiresIn: '1d' });
             return res.json({ success: true, token });
         } catch (error) {
             next(error);
