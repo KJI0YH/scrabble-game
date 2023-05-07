@@ -9,7 +9,7 @@ function TileBag(props) {
                     Tile bag
                 </div>
                 <div>
-                    {tiles.reduce((sum, tile) => {
+                    Left: {tiles.reduce((sum, tile) => {
                         return sum + tile.count;
                     }, 0)}
                 </div>

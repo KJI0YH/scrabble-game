@@ -35,7 +35,7 @@ function Player(props) {
                 )}
                 {player.wantEnd && (
                     <div className='wants-to-end'>
-                        wants to end
+                        finish
                     </div>
                 )}
             </div>

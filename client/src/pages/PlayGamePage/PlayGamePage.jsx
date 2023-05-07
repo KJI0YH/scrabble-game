@@ -11,6 +11,7 @@ import SwapModal from "../../components/SwapModal/SwapModal";
 import LeaveModal from '../../components/LeaveModal/LeaveModal';
 import Timer from '../../components/Timer/Timer';
 import GameOverModal from '../../components/GameOverModal/GameOverModal';
+import History from '../../components/History/History';
 
 const defaultInput = {
     row: -1,
@@ -268,15 +269,6 @@ function PlayGamePage() {
                             />
                         </div>
 
-                        {challenge && (
-                            <div className='challenge-timer'>
-                                <Timer
-                                    caption={"Challenge time left: "}
-                                    seconds={challenge.timeLeft}
-                                />
-                            </div>
-                        )}
-
                         {challenge && resolveLetters.length > 0 ? (
                             <div className='play-controller-buttons'>
                                 <button onClick={handleChallengeCancel} style={{ backgroundColor: '#e79029' }}>Cancel selection</button>
@@ -306,6 +298,14 @@ function PlayGamePage() {
                                 </div>
                             </>
                         )}
+                        {challenge && (
+                            <div className='challenge-timer'>
+                                <Timer
+                                    caption={"Challenge time left: "}
+                                    seconds={challenge.timeLeft}
+                                />
+                            </div>
+                        )}
                     </div>
 
                     <div className='play-info'>
@@ -332,9 +332,10 @@ function PlayGamePage() {
                         <TileBag
                             tiles={game.bag}
                         />
-                        <div style={{ flex: 1, backgroundColor: 'red' }}>
-                            history
-                        </div>
+
+                        <History
+                            history={game.history}
+                        />
                     </div>
 
                     <SkipModal
