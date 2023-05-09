@@ -8,6 +8,9 @@ import FindGamePage from './pages/FindGamePage/FindGamePage.jsx';
 import WaitGamePage from './pages/WaitGamePage/WaitGamePage.jsx';
 import PlayGamePage from './pages/PlayGamePage/PlayGamePage.jsx';
 import axios from 'axios';
+import { config } from './config.js';
+
+const SERVER_URL = `${config.SERVER_URL}:${config.API_PORT}`;
 
 function App() {
     const [isLogged, setIsLogged] = useState(false);
@@ -21,7 +24,7 @@ function App() {
         const token = localStorage.getItem('token');
         if (token) {
             try {
-                const response = await axios.post('http://localhost:8080/api/auth/verify', { token: token });
+                const response = await axios.post(`${SERVER_URL}/api/auth/verify`, { token: token });
                 if (response.status === 200) {
                     localStorage.setItem('token', response.data.token);
                     localStorage.setItem('userID', response.data.decoded.userID);
