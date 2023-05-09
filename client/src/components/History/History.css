@@ -34,6 +34,10 @@
     background-color: #472238;
 }
 
+.history-type span {
+    text-transform: none;
+}
+
 .history-content-header {
     display: flex;
     flex-direction: row;
