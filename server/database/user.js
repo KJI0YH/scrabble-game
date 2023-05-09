@@ -16,7 +16,6 @@ export async function addUser(login, passwordHash) {
         averageGameScore: 0,
         maxScore: 0,
         joined: new Date(),
-        lastOnline: new Date(),
         ratingGlicko: 1000,
         ratingDeviation: 350,
     };
