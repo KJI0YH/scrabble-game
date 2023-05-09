@@ -109,7 +109,7 @@ export default function playController(playNamespace) {
 
             // Check that player can move
             const nowMove = await nowPlayer(id);
-            if (!(nowMove && nowMove.login == socket.login)) {
+            if (!(nowMove && nowMove.login === socket.login)) {
                 return;
             }
 
@@ -182,6 +182,12 @@ export default function playController(playNamespace) {
         socket.on('challenge open', async ({ id }) => {
             const partyID = new ObjectId(id);
             const party = await db.collection('parties').findOne({ _id: partyID });
+            const initiator = party.players.find(p => p.login === socket.login);
+
+            if (initiator.timeLeft <= 0) {
+                return;
+            }
+
             if (party && party.status !== "challenge") {
                 if (party.history.length === 0) {
                     return;
@@ -376,7 +382,7 @@ async function nextPlayer(id) {
             const popPlayer = players.shift();
             popPlayer.skip = false;
             players.push(popPlayer);
-        } while (players[0].skip || players[0].timeLeft <= 0);
+        } while (players[0].skip || players[0].timeLeft <= 0 || players[0].letters <= 0);
 
         await db.collection('parties').updateOne({ _id: partyID }, {
             $set: { "players": players }
@@ -765,7 +771,7 @@ async function saveGameHistory(id) {
         calculateGlicko(players, results);
 
         players.forEach(async (player, i) => {
-            const res = Math.min(results[i].filter((_, index) => index !== i));
+            const res = Math.min(...results[i].filter((_, index) => index !== i));
             const lose = res === 0 ? 1 : 0;
             const draw = res === 0.5 ? 1 : 0;
             const win = res === 1 ? 1 : 0;
