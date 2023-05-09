@@ -1,8 +1,6 @@
-import ActiveLetters from '../ActiveLetters/ActiveLetters';
 import Timer from '../Timer/Timer';
 import './Player.css';
-import axios from 'axios';
-import React, { useState } from 'react';
+import React from 'react';
 
 function Player(props) {
     const { player, challenge, initiator } = props;

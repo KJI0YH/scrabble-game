@@ -16,7 +16,7 @@ function TileBag(props) {
             </div>
             <div className='tiles'>
                 {tiles.map(tile => (
-                    <div className='tile-bag-cell'>
+                    <div key={tile.letter} className='tile-bag-cell'>
                         <div className='tile-bag-cell-letter'>{tile.letter}</div>
                         <div className='tile-bag-cell-count'>&times;{tile.count}</div>
                     </div>

@@ -9,21 +9,21 @@ export const findGameSocket = io(SOCKET_URL + '/game/find', { autoConnect: false
 export const waitGameSocket = io(SOCKET_URL + '/game/wait', { autoConnect: false });
 export const playGameSocket = io(SOCKET_URL + '/game/play', { autoConnect: false });
 
-createGameSocket.onAny((event, ...args) => {
-    console.log(event, args);
-});
+// createGameSocket.onAny((event, ...args) => {
+//     console.log(event, args);
+// });
 
-findGameSocket.onAny((event, ...args) => {
-    console.log(event, args);
-});
+// findGameSocket.onAny((event, ...args) => {
+//     console.log(event, args);
+// });
 
-waitGameSocket.onAny((event, ...args) => {
-    console.log(event, args);
-});
+// waitGameSocket.onAny((event, ...args) => {
+//     console.log(event, args);
+// });
 
-playGameSocket.onAny((event, ...args) => {
-    console.log(event, args);
-});
+// playGameSocket.onAny((event, ...args) => {
+//     console.log(event, args);
+// });
 
 createGameSocket.on('session', ({ login, userID }) => {
     createGameSocket.login = login;
