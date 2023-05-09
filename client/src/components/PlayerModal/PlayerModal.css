@@ -10,5 +10,8 @@
 .player-win-draw-lose {
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+}
+
+.player-win-draw-lose .player-stat {
+    margin: 0 5px;
 }
