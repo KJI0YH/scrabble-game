@@ -10,8 +10,8 @@ function Player(props) {
     return (
         <div className="player-container"
             style={{
-                ...(player.move && { borderColor: 'green' }),
-                ...(player.timeLeft === 0 && { borderColor: 'red' })
+                ...(player.move && { borderColor: '#00FF00' }),
+                ...(player.timeLeft === 0 && { borderColor: '#FF0000' })
             }}
         >
             <div className='player-header'>

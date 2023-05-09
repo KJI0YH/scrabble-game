@@ -288,7 +288,7 @@ function PlayGamePage() {
         <div className='play-container'>
             {game && playerLetters && players && (
                 <>
-                    <div className='play-controller'>
+                    <div className='play-controller' style={canMove ? { border: '5px solid #00FF00' } : {}}>
                         <div className='play-board'>
                             <Board
                                 rowCount={game.board.size}
@@ -420,8 +420,9 @@ function PlayGamePage() {
                         onGoHome={handleGoHome}
                     />
                 </>
-            )}
-        </div>
+            )
+            }
+        </div >
     )
 }
 
