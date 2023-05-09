@@ -107,9 +107,9 @@ function PlayGamePage() {
             setShowGameOverModal(true);
         });
 
-        playGameSocket.on('disconnect', () => {
-            navigate('/', { replace: true });
-        });
+        // playGameSocket.on('disconnect', () => {
+        //     navigate('/', { replace: true });
+        // });
 
         return () => {
             playGameSocket.off('game state');

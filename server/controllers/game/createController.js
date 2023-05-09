@@ -27,7 +27,7 @@ export default function createController(createNamespace) {
         // Check existing room
         const createdRoom = await checkExistRoom(socket.login);
         if (createdRoom) {
-            socket.emit('create success');
+            return socket.emit('create success');
         }
 
         // Creating a wait room

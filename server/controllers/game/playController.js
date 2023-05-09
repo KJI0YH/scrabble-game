@@ -48,7 +48,7 @@ export default function playController(playNamespace) {
 
             // Check that player can move
             const nowMove = await nowPlayer(id);
-            if (!(nowMove && nowMove.login == socket.login)) {
+            if (!(nowMove && nowMove.login === socket.login)) {
                 return;
             }
 

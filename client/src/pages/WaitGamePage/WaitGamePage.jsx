@@ -38,9 +38,9 @@ function WaitGamePage() {
             navigate('/game/play', { replace: true });
         });
 
-        waitGameSocket.on('disconnect', () => {
-            navigate('/', { replace: true });
-        });
+        // waitGameSocket.on('disconnect', () => {
+        //     navigate('/', { replace: true });
+        // });
 
         return () => {
             waitGameSocket.off('active party');
